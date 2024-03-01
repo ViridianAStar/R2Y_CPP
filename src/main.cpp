@@ -147,7 +147,7 @@ void prepSys() {
 }
 
 void move(double distance/*, double angle*/) {
-   double degreesWanted = ((distance/wheelCircumference)*360.0)*gearRatio;
+   double degreesWanted = (distance*(360*gearRatio))/wheelCircumference;
    desiredDistance = degreesWanted;
 }
 
