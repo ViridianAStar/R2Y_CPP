@@ -37,14 +37,14 @@ bool enabledrivePID = false;
 float desiredDistance = 0.0;
 float desiredAngle = 0.0;
 float wheelDiameter = 3.25;
-float gearRatio = 0.6;
+float gearRatio = .6;
 float rotationScale = 360;
 float wheelCircumference = M_PI * wheelDiameter;
 
 // PID Tuning Values Start 
 float kP = 1.5;
 float kI = 0.005;
-float kD = 10.0;
+float kD = 0.4;
 
 float tkP = 0.4;
 float tkI = 0.04;
@@ -64,7 +64,7 @@ float turnderivative = 0.0;
 // Error and Derivative Values End
 
 // Antiintegral Wind-Up Values Start
-float lateralI = 20;
+float lateralI = 5;
 float turnI = 15;
 // Antiintegral Wind-Up Values End
 
@@ -115,10 +115,22 @@ float reduce_negative_90_to_90(float angle) {
 }
 // Functions borrowed from JAR-Template End
 
-
+bool pid_active = false;
 // a task designed to control the drivetrain via PID takes no input.
 int drivePID() { 
+   bool rotationComplete = false;
+   bool lateralComplete = false;
    while (enabledrivePID) {
+
+      if (rotationComplete == true && lateralComplete == true) {
+         pid_active = false;
+         rightMotors.stop(hold);
+         leftMotors.stop(hold);
+      } else if(pid_active == true){
+         rotationComplete = false;
+         lateralComplete = false;
+      }
+
       // Motor Positions Start
       float leftPosition = leftMotors.position(degrees);
       // get the mean position of motors on the left side of the drivetrain
@@ -130,12 +142,6 @@ int drivePID() {
       // Lateral PID Start
       error = desiredDistance - averagePosition;
 
-      if (fabs(error) <= toleranceLateral){
-         error = 0;
-         derivative = 0;
-         totalerror = 0;
-      }
-
       derivative = error - preverror;
 
       if (error < lateralI) {
@@ -143,6 +149,10 @@ int drivePID() {
       }
 
       preverror = error;
+
+      if (fabs(error) < toleranceLateral) {
+         lateralComplete = true;
+      }
 
 
       /*
@@ -171,10 +181,14 @@ int drivePID() {
 
       turnerror = reduce_negative_180_to_180(desiredAngle - currentHeading);
 
-      if(fabs(turnerror) <= toleranceTurn) {
+      if(fabs(turnerror) <= toleranceTurn && fabs(error) <= toleranceLateral) {
          turnerror = 0;
          turnderivative = 0;
          turntotalerror = 0;
+         rotationComplete = true;
+         error = 0;
+         derivative = 0;
+         totalerror = 0;
       }
 
       turnderivative = turnerror - turnpreverror;
@@ -186,7 +200,7 @@ int drivePID() {
       turnpreverror = turnerror;
 
       float turnmotorPower = ((turnerror * tkP) + (turnderivative * tkD) + (turntotalerror * tkI)) / 12.7; // TMP
-      printf("LMP %f\n", turnmotorPower);
+      printf("TMP %f\n", turnmotorPower);
       // Rotational PID End
       
       rightMotors.spin(forward, (lateralmotorPower - turnmotorPower), volt);
@@ -212,17 +226,22 @@ void prepSys() {
 
 void move(float distance, float angle) {
 // convert linear distance to angular distance
-   float degreesWanted = (distance*(360*gearRatio))/wheelCircumference;
-   desiredDistance = degreesWanted;
+   while (pid_active == true) {
+      wait(5, msec);
+   }
+   if (pid_active == false){
+      float degreesWanted = 2*((distance*(360*gearRatio))/wheelCircumference);
+      desiredDistance = degreesWanted;
 
-   desiredAngle = angle;
+      desiredAngle = angle;
+   }
 }
 
 int main() {
    prepSys();
    enabledrivePID = true;
    task PID( drivePID );
-   move(12.0, 0.0);
+   move(48.0, 90.0);
    // pray it works
 
 }
