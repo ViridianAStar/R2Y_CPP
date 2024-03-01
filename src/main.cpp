@@ -7,7 +7,6 @@
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 #include "vex.h"
-#include "clock.cpp"
 
 using namespace vex;
 
@@ -31,9 +30,6 @@ motor_group rightMotors = motor_group(trMotor13, mrMotor12, brMotor11);
 // Define Other Devices Start
 inertial inertia5 = inertial(PORT5);
 // Define Other Devices End
-
-// Other Objects Start
-clockD clock = clockD();
 
 // Global Variables Start
 bool enabledrivePID = false;
@@ -151,7 +147,6 @@ void prepSys() {
 }
 
 void move(double distance/*, double angle*/) {
-   clock.start();
    double degreesWanted = ((distance/wheelCircumference)*360.0)*gearRatio;
    desiredDistance = degreesWanted;
 }
@@ -161,8 +156,6 @@ int main() {
    enabledrivePID = true;
    task PID( drivePID );
    move(12.0);
-   clock.stop();
-   printf("Time Taken: %f ms\n", clock.timeTaken);
    // pray it works
 
 }
