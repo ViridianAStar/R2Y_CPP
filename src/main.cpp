@@ -133,7 +133,7 @@ int drivePID() {
 
       // Motor Positions Start
       float leftPosition = leftMotors.position(degrees);
-      // get the mean position of motors on the left side of the drivetrain
+      // Get the mean position of motors on the left side of the drivetrain
       float rightPosition = rightMotors.position(degrees);
 
       float averagePosition = (leftPosition + rightPosition) / 2; // get the average position of both sides of the drive train
@@ -150,6 +150,7 @@ int drivePID() {
 
       preverror = error;
 
+      // If you are within error bounds register as complete
       if (fabs(error) < toleranceLateral) {
          lateralComplete = true;
       }
@@ -158,7 +159,7 @@ int drivePID() {
       /*
       Error is the difference between the position you want to be and where you currently are ie how far you have left to go
       Derivative is the difference between your current distance and your previous distance ie how far you have traveled in one cycle
-      Total Error is your compounding error ie how far you have traveled
+      Total Error is your compounding error ie how far you have traveled note that this only runs within certain bounds to prevent windup
 
       We multiply these values by our PID tuning values to acquire a value that specifies the voltage to move the motors at.
       thus giving us our lateral motor power or LMP
@@ -180,7 +181,7 @@ int drivePID() {
       float currentHeading = reduce_0_to_360(inertia5.rotation()*360.0/rotationScale);;
 
       turnerror = reduce_negative_180_to_180(desiredAngle - currentHeading);
-
+      
       if(fabs(turnerror) <= toleranceTurn && fabs(error) <= toleranceLateral) {
          turnerror = 0;
          turnderivative = 0;
