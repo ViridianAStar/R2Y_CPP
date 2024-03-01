@@ -29,6 +29,7 @@ motor_group rightMotors = motor_group(trMotor13, mrMotor12, brMotor11);
 
 // Define Other Devices Start
 inertial inertia5 = inertial(PORT5);
+controller driver = controller(primary);
 // Define Other Devices End
 
 // Global Variables Start
