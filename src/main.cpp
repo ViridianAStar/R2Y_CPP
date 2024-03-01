@@ -69,9 +69,15 @@ float turnI = 15;
 // Antiintegral Wind-Up Values End
 
 // Tolerance Values Start
-float toleranceLateral = 2;
-float toleranceTurn = 1.5;
+float toleranceLateral = 1;
+float toleranceTurn = 0.5;
 // Tolerance Values End
+
+// Swing and PID Activity Tracking Values Start
+bool activePID = false;
+bool isSwinging = false;
+bool swingDirection = false;
+// Swing and PID Activity Tracking Values End
 
 // Global Variables End
 
@@ -115,7 +121,12 @@ float reduce_negative_90_to_90(float angle) {
 }
 // Functions borrowed from JAR-Template End
 
-bool pid_active = false;
+// PID Start
+
+void swingPID(){
+   
+}
+
 // a task designed to control the drivetrain via PID takes no input.
 int drivePID() { 
    bool rotationComplete = false;
@@ -123,10 +134,10 @@ int drivePID() {
    while (enabledrivePID) {
 
       if (rotationComplete == true && lateralComplete == true) {
-         pid_active = false;
+         activePID = false;
          rightMotors.stop(hold);
          leftMotors.stop(hold);
-      } else if(pid_active == true){
+      } else if(activePID == true){
          rotationComplete = false;
          lateralComplete = false;
       }
@@ -167,6 +178,7 @@ int drivePID() {
 
       float lateralmotorPower = ((error * kP) + (derivative * kD) + (totalerror * kI)) / 12.7; //LMP
       printf("LMP %f\n", lateralmotorPower);
+
       // Lateral PID End
 
       // Rotational PID Start
@@ -178,10 +190,11 @@ int drivePID() {
       
       // borrowed from JAR-Template however it just gets the absolute of its current position
    
-      float currentHeading = reduce_0_to_360(inertia5.rotation()*360.0/rotationScale);;
+      float currentHeading = reduce_0_to_360(inertia5.rotation(degrees)*360.0/rotationScale);;
 
       turnerror = reduce_negative_180_to_180(desiredAngle - currentHeading);
       
+      // if both are true you are done moving if turn is true then you are done turning
       if(fabs(turnerror) <= toleranceTurn && fabs(error) <= toleranceLateral) {
          turnerror = 0;
          turnderivative = 0;
@@ -190,6 +203,12 @@ int drivePID() {
          error = 0;
          derivative = 0;
          totalerror = 0;
+         
+      } else if(fabs(turnerror) <= toleranceTurn) {
+         turnerror = 0;
+         turnderivative = 0;
+         turntotalerror = 0;
+         rotationComplete = true;
       }
 
       turnderivative = turnerror - turnpreverror;
@@ -207,12 +226,15 @@ int drivePID() {
       rightMotors.spin(forward, (lateralmotorPower - turnmotorPower), volt);
       leftMotors.spin (forward, (lateralmotorPower + turnmotorPower), volt);
 
+
       task::sleep(50); // time between updates to the PID loop.
       
    }
 
    return(1);
 }
+
+// PID End
 
 void prepSys() {
    // Preamble that tells the robot it is where it should be to start
@@ -227,14 +249,23 @@ void prepSys() {
 
 void move(float distance, float angle) {
 // convert linear distance to angular distance
-   while (pid_active == true) {
+   while (activePID == true) {
       wait(5, msec);
    }
-   if (pid_active == false){
+   if (activePID == false){
       float degreesWanted = 2*((distance*(360*gearRatio))/wheelCircumference);
       desiredDistance = degreesWanted;
 
       desiredAngle = angle;
+   }
+}
+
+void turn_to_angle(float angle, bool direction) {
+   while (activePID == true) {
+      wait(5, msec);
+   }
+   if (activePID == false) {
+      isSwinging = true;
    }
 }
 
