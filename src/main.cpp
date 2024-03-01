@@ -33,44 +33,44 @@ inertial inertia5 = inertial(PORT5);
 
 // Global Variables Start
 bool enabledrivePID = false;
-double desiredDistance = 0.0;
-double desiredAngle = 0.0;
-double wheelDiameter = 3.25;
-double gearRatio = 0.6;
-double wheelCircumference = M_PI * wheelDiameter;
+float desiredDistance = 0.0;
+float desiredAngle = 0.0;
+float wheelDiameter = 3.25;
+float gearRatio = 0.6;
+float wheelCircumference = M_PI * wheelDiameter;
 // Global Variables End
 
 // a task designed to control the drivetrain via PID takes no input.
 int drivePID() {
  // PID Tuning Values Start 
-    double kP = 1.5;
-    double kI = 0.005;
-    double kD = 10.0;
+    float kP = 1.5;
+    float kI = 0.005;
+    float kD = 10.0;
 
-    double tkP = 0.4;
-    double tkI = 0.04;
-    double tkD = 3.0;
+    float tkP = 0.4;
+    float tkI = 0.04;
+    float tkD = 3.0;
  // PID Tuning Values End
 
  // Error and Derivative Values Start
-    double error = 0.0;
-    double preverror = 0.0;
-    double totalerror = 0.0;
-    double derivative = 0.0;
+    float error = 0.0;
+    float preverror = 0.0;
+    float totalerror = 0.0;
+    float derivative = 0.0;
 
-    double turnerror = 0.0;
-    double turnpreverror = 0.0;
-    double turntotalerror = 0.0;
-    double turnderivative = 0.0;
+    float turnerror = 0.0;
+    float turnpreverror = 0.0;
+    float turntotalerror = 0.0;
+    float turnderivative = 0.0;
  // Error and Derivative Values End
  
    while (enabledrivePID) {
       // Motor Positions Start
-      double leftPosition = leftMotors.position(degrees);
+      float leftPosition = leftMotors.position(degrees);
       // get the mean position of motors on the left side of the drivetrain
-      double rightPosition = rightMotors.position(degrees);
+      float rightPosition = rightMotors.position(degrees);
 
-      double averagePosition = (leftPosition + rightPosition) / 2; // get the average position of both sides of the drive train
+      float averagePosition = (leftPosition + rightPosition) / 2; // get the average position of both sides of the drive train
       // Motor Position End
 
       // Lateral PID Start
@@ -92,7 +92,7 @@ int drivePID() {
       thus giving us our lateral motor power or LMP
       */
 
-      double lateralmotorPower = ((error * kP) + (derivative * kD) + (totalerror * kI)) / 12.7; //LMP
+      float lateralmotorPower = ((error * kP) + (derivative * kD) + (totalerror * kI)) / 12.7; //LMP
       printf("kP %f\n", kP);
       printf("kI %f\n", kI);
       printf("kD %f\n", kD);
@@ -112,9 +112,9 @@ int drivePID() {
       Outside of that, it is exactly the same as before.
       */
 
-      double currentAngle = inertia5.heading();
+      float currentHeading = inertia5.heading();
 
-      turnerror = desiredAngle - currentAngle;
+      turnerror = desiredAngle - currentHeading;
 
       turnderivative = turnerror - turnpreverror;
 
@@ -122,7 +122,7 @@ int drivePID() {
 
       turnpreverror = turnerror;
 
-      double turnmotorPower = ((turnerror * tkP) + (turnderivative * tkD) + (turntotalerror * tkI)) / 12.7; // TMP
+      float turnmotorPower = ((turnerror * tkP) + (turnderivative * tkD) + (turntotalerror * tkI)) / 12.7; // TMP
       // Rotational PID End
       
       rightMotors.spin(forward, (lateralmotorPower - turnmotorPower), volt);
@@ -146,16 +146,26 @@ void prepSys() {
    rightMotors.setPosition(0, deg);
 }
 
-void move(double distance/*, double angle*/) {
-   double degreesWanted = (distance*(360*gearRatio))/wheelCircumference;
+float reduce_0_to_360(float angle) {
+  while(!(angle >= 0 && angle < 360)) {
+    if( angle < 0 ) { angle += 360; }
+    if(angle >= 360) { angle -= 360; }
+  }
+  return(angle);
+}
+
+void move(float distance, float angle) {
+   float degreesWanted = (distance*(360*gearRatio))/wheelCircumference;
    desiredDistance = degreesWanted;
+   
+   desiredAngle = angle;
 }
 
 int main() {
    prepSys();
    enabledrivePID = true;
    task PID( drivePID );
-   move(12.0);
+   move(12.0, 0.0);
    // pray it works
 
 }
