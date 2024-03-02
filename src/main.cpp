@@ -36,6 +36,7 @@ controller driver = controller(primary);
 bool enabledrivePID = false;
 float desiredDistance = 0.0;
 float desiredAngle = 0.0;
+float desiredswingAngle = 0.0;
 float wheelDiameter = 3.25;
 float gearRatio = .6;
 float rotationScale = 360;
@@ -49,6 +50,10 @@ float kD = 0.4;
 float tkP = 0.4;
 float tkI = 0.04;
 float tkD = 3.0;
+
+float skP = 0.3;
+float skI = 0.001;
+float skD = 2;
 // PID Tuning Values End
 
 // Error and Derivative Values Start
@@ -56,6 +61,11 @@ float error = 0.0;
 float preverror = 0.0;
 float totalerror = 0.0;
 float derivative = 0.0;
+
+float swingerror = 0.0;
+float swingpreverror = 0.0;
+float swingtotalerror = 0.0;
+float swingderivative = 0.0;
 
 float turnerror = 0.0;
 float turnpreverror = 0.0;
@@ -71,6 +81,7 @@ float turnI = 15;
 // Tolerance Values Start
 float toleranceLateral = 1;
 float toleranceTurn = 0.5;
+float toleranceSwing = 0.5;
 // Tolerance Values End
 
 // Swing and PID Activity Tracking Values Start
@@ -93,6 +104,13 @@ void setturnKvalues(float ntkP, float ntkI, float ntkD){
    tkP = ntkP;
    tkI = ntkI;
    tkD = ntkD;
+}
+
+// same thing but for swing values
+void setswingKvalues(float nskP, float nskI, float nskD){
+   skP = nskP;
+   skI = nskI;
+   skD = nskD;
 }
 
 // Functions borrowed from JAR-Template Start
@@ -123,10 +141,6 @@ float reduce_negative_90_to_90(float angle) {
 
 // PID Start
 
-void swingPID(){
-   
-}
-
 // a task designed to control the drivetrain via PID takes no input.
 int drivePID() { 
    bool rotationComplete = false;
@@ -155,7 +169,7 @@ int drivePID() {
 
       derivative = error - preverror;
 
-      if (error < lateralI) {
+      if (fabs(error) < lateralI) {
          totalerror += error;
       }
 
@@ -190,7 +204,7 @@ int drivePID() {
       
       // borrowed from JAR-Template however it just gets the absolute of its current position
    
-      float currentHeading = reduce_0_to_360(inertia5.rotation(degrees)*360.0/rotationScale);;
+      float currentHeading = reduce_0_to_360(inertia5.rotation(degrees)*360.0/rotationScale);
 
       turnerror = reduce_negative_180_to_180(desiredAngle - currentHeading);
       
@@ -213,7 +227,7 @@ int drivePID() {
 
       turnderivative = turnerror - turnpreverror;
 
-      if (turnerror < turnI) {
+      if (fabs(turnerror) < turnI) {
          turntotalerror += turnerror;
       }
 
@@ -226,6 +240,64 @@ int drivePID() {
       rightMotors.spin(forward, (lateralmotorPower - turnmotorPower), volt);
       leftMotors.spin (forward, (lateralmotorPower + turnmotorPower), volt);
 
+      // Swing PID Start
+      if (isSwinging == true){
+         if (swingDirection == true) {
+
+            float currentRotation = reduce_0_to_360(inertia5.rotation(degrees)*360.0/rotationScale);
+
+            swingerror = reduce_negative_180_to_180(desiredswingAngle - currentRotation);
+
+            swingderivative = swingerror - swingpreverror;
+
+            if (fabs(swingerror) < lateralI) {
+               swingtotalerror += swingerror;
+            }
+
+            swingpreverror = swingerror;
+
+            if(fabs(swingerror) <= toleranceSwing) {
+               swingerror = 0;
+               swingderivative = 0;
+               swingtotalerror = 0;
+               isSwinging = false;
+               activePID = false;
+            }
+
+            float swingPower = ((swingerror * skP) + (swingderivative * skD) + (swingtotalerror * skI)) / 12.7;
+
+            leftMotors.spin(forward, swingPower, volt);
+            rightMotors.stop(hold);
+
+         } else {
+
+            float currentRotation = reduce_0_to_360(inertia5.rotation(degrees)*360.0/rotationScale);
+
+            swingerror = reduce_negative_180_to_180(desiredswingAngle - currentRotation);
+
+            swingderivative = swingerror - swingpreverror;
+
+            if (fabs(swingerror) < lateralI) {
+               swingtotalerror += swingerror;
+            }
+
+            swingpreverror = swingerror;
+
+            if(fabs(swingerror) <= toleranceSwing) {
+               swingerror = 0;
+               swingderivative = 0;
+               swingtotalerror = 0;
+               isSwinging = false;
+               activePID = false;
+            }
+
+            float swingPower = ((swingerror * skP) + (swingderivative * skD) + (swingtotalerror * skI)) / 12.7;
+
+            rightMotors.spin(reverse, swingPower, volt);
+            leftMotors.stop(hold);
+         }
+      }
+      // Swing PID Start
 
       task::sleep(50); // time between updates to the PID loop.
       
@@ -238,34 +310,45 @@ int drivePID() {
 
 void prepSys() {
    // Preamble that tells the robot it is where it should be to start
-   inertia5.calibrate();
-   leftMotors.resetPosition();
-   rightMotors.resetPosition();
-   inertia5.setHeading(0, deg);
-   inertia5.setRotation(0, deg);
-   leftMotors.setPosition(0, deg);
-   rightMotors.setPosition(0, deg);
+   inertia5.calibrate(); // calibrate for accuracy
+   leftMotors.resetPosition(); // reset their postion
+   rightMotors.resetPosition(); // reset their position
+   inertia5.setHeading(0, deg); // tell it what its heading is
+   inertia5.setRotation(0, deg); // tell it what its rotation is (on xy plane)
+   leftMotors.setPosition(0, deg); // tell them they are at 0
+   rightMotors.setPosition(0, deg); // tell them they are at 0
 }
 
+// distance should be in inches but if it is not you can always add a modifier angle is in degrees by default
 void move(float distance, float angle) {
 // convert linear distance to angular distance
    while (activePID == true) {
+      // if another task is running do not run
       wait(5, msec);
    }
    if (activePID == false){
-      float degreesWanted = 2*((distance*(360*gearRatio))/wheelCircumference);
+      // when PID is available for tasking, convert distance to degrees and/or tell it the desired angle to turn to and tell it that it is active
+      float degreesWanted = (((distance*360)*gearRatio))/wheelCircumference;
       desiredDistance = degreesWanted;
 
       desiredAngle = angle;
+      activePID = true;
    }
 }
 
+// true for left false for right
 void turn_to_angle(float angle, bool direction) {
    while (activePID == true) {
+      // if another task is running do not run
       wait(5, msec);
    }
    if (activePID == false) {
+      // when PID is available for tasking, tell it that it is swinging and that it is active
+      // also tell it if it is left or right handed
+      swingDirection = direction;
+      desiredswingAngle = angle;
       isSwinging = true;
+      activePID = true;
    }
 }
 
