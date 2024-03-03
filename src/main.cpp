@@ -76,6 +76,7 @@ float turnderivative = 0.0;
 // Antiintegral Wind-Up Values Start
 float lateralI = 5;
 float turnI = 15;
+float swingI = 15;
 // Antiintegral Wind-Up Values End
 
 // Tolerance Values Start
@@ -250,13 +251,13 @@ int drivePID() {
 
             swingderivative = swingerror - swingpreverror;
 
-            if (fabs(swingerror) < lateralI) {
+            if (fabs(swingerror) < toleranceSwing) {
                swingtotalerror += swingerror;
             }
 
             swingpreverror = swingerror;
 
-            if(fabs(swingerror) <= toleranceSwing) {
+            if(fabs(swingerror) <= swingI) {
                swingerror = 0;
                swingderivative = 0;
                swingtotalerror = 0;
@@ -277,7 +278,7 @@ int drivePID() {
 
             swingderivative = swingerror - swingpreverror;
 
-            if (fabs(swingerror) < lateralI) {
+            if (fabs(swingerror) < swingI) {
                swingtotalerror += swingerror;
             }
 
