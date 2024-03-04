@@ -214,14 +214,6 @@ int drivePID() {
          lateralmotorPower = (lateralVoltagetotal * -1);
       }
 
-      /*
-      if (x > x) {
-         x = x;
-      } else if(x < (x * -1)) {
-         x = (x * -1);
-      }
-      */
-
       printf("LMP %f\n", lateralmotorPower);
 
       // Lateral PID End
