@@ -120,6 +120,13 @@ void setswingKvalues(float nskP, float nskI, float nskD){
    skD = nskD;
 }
 
+// mass edit voltage limiters
+void setvoltageLimits(float nlvT, float ntvT, float nsvT) {
+   lateralVoltagetotal = nlvT;
+   turnVoltagetotal = ntvT;
+   swingVoltagetotal = nsvT;
+}
+
 // Functions borrowed from JAR-Template Start
 float reduce_0_to_360(float angle) {
   while(!(angle >= 0 && angle < 360)) {
@@ -406,7 +413,7 @@ int main() {
    prepSys();
    enabledrivePID = true;
    task PID( drivePID );
-   move(48.0, 90.0);
+   move(48.0, 0.0);
    // pray it works
 
 }
