@@ -85,6 +85,12 @@ float toleranceTurn = 0.5;
 float toleranceSwing = 0.5;
 // Tolerance Values End
 
+// Voltage Limiters Start
+float lateralVoltagetotal = 12.7;
+float turnVoltagetotal = 12.7;
+float swingVoltagetotal = 12.7;
+// Voltage Limiters End
+
 // Swing and PID Activity Tracking Values Start
 bool activePID = false;
 bool isSwinging = false;
@@ -146,6 +152,7 @@ float reduce_negative_90_to_90(float angle) {
 int drivePID() { 
    bool rotationComplete = false;
    bool lateralComplete = false;
+   float swingmotorPower = 0.0;
    while (enabledrivePID) {
 
       if (rotationComplete == true && lateralComplete == true) {
@@ -192,6 +199,22 @@ int drivePID() {
       */
 
       float lateralmotorPower = ((error * kP) + (derivative * kD) + (totalerror * kI)) / 12.7; //LMP
+
+      // keep motor power within limits
+      if (lateralmotorPower > lateralVoltagetotal) {
+         lateralmotorPower = lateralVoltagetotal;
+      } else if(lateralmotorPower < (lateralVoltagetotal * -1)) {
+         lateralmotorPower = (lateralVoltagetotal * -1);
+      }
+
+      /*
+      if (x > x) {
+         x = x;
+      } else if(x < (x * -1)) {
+         x = (x * -1);
+      }
+      */
+
       printf("LMP %f\n", lateralmotorPower);
 
       // Lateral PID End
@@ -235,6 +258,13 @@ int drivePID() {
       turnpreverror = turnerror;
 
       float turnmotorPower = ((turnerror * tkP) + (turnderivative * tkD) + (turntotalerror * tkI)) / 12.7; // TMP
+
+      if (turnmotorPower > turnVoltagetotal) {
+         turnmotorPower = turnVoltagetotal;
+      } else if(turnmotorPower < (turnVoltagetotal * -1)) {
+         turnmotorPower = (turnVoltagetotal * -1);
+      }
+
       printf("TMP %f\n", turnmotorPower);
       // Rotational PID End
       
@@ -261,13 +291,22 @@ int drivePID() {
                swingerror = 0;
                swingderivative = 0;
                swingtotalerror = 0;
+               rightMotors.stop(hold);
+               leftMotors.stop(hold);
                isSwinging = false;
                activePID = false;
             }
 
-            float swingPower = ((swingerror * skP) + (swingderivative * skD) + (swingtotalerror * skI)) / 12.7;
+            swingmotorPower = ((swingerror * skP) + (swingderivative * skD) + (swingtotalerror * skI)) / 12.7;
+            printf("SMP %f\n", swingmotorPower);
 
-            leftMotors.spin(forward, swingPower, volt);
+            if (swingmotorPower > swingVoltagetotal) {
+               swingmotorPower = swingVoltagetotal;
+            } else if(swingmotorPower < (swingVoltagetotal * -1)) {
+               swingmotorPower = (swingVoltagetotal * -1);
+            }
+
+            leftMotors.spin(forward, swingmotorPower, volt);
             rightMotors.stop(hold);
 
          } else {
@@ -288,13 +327,23 @@ int drivePID() {
                swingerror = 0;
                swingderivative = 0;
                swingtotalerror = 0;
+               rightMotors.stop(hold);
+               leftMotors.stop(hold);
                isSwinging = false;
                activePID = false;
             }
 
-            float swingPower = ((swingerror * skP) + (swingderivative * skD) + (swingtotalerror * skI)) / 12.7;
+            swingmotorPower = ((swingerror * skP) + (swingderivative * skD) + (swingtotalerror * skI)) / 12.7;
 
-            rightMotors.spin(reverse, swingPower, volt);
+            if (swingmotorPower > swingVoltagetotal) {
+               swingmotorPower = swingVoltagetotal;
+            } else if(swingmotorPower < (swingVoltagetotal * -1)) {
+               swingmotorPower = (swingVoltagetotal * -1);
+            }
+
+            printf("SMP %f\n", swingmotorPower);
+
+            rightMotors.spin(reverse, swingmotorPower, volt);
             leftMotors.stop(hold);
          }
       }
