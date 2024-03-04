@@ -14,17 +14,15 @@ using namespace vex;
 vex::brain       Brain;
 
 // Global Motor Definitions Start
-motor tlMotor18 = motor(PORT18, ratio6_1, true);
-motor mlMotor19 = motor(PORT19, ratio6_1, true);
-motor blMotor20 = motor(PORT20, ratio6_1, true);
-motor trMotor13 = motor(PORT13, ratio6_1, false);
-motor mrMotor12 = motor(PORT12, ratio6_1, false);
-motor brMotor11 = motor(PORT11, ratio6_1, false);
+motor tlMotor01 = motor(PORT1, ratio6_1, true);
+motor blMotor11 = motor(PORT11, ratio6_1, true);
+motor trMotor10 = motor(PORT10, ratio6_1, false);
+motor brMotor20 = motor(PORT20, ratio6_1, false);
 // Global Motor Definitions End
 
 // Define Motor Groups Start
-motor_group leftMotors = motor_group(tlMotor18, mlMotor19, blMotor20);
-motor_group rightMotors = motor_group(trMotor13, mrMotor12, brMotor11);
+motor_group leftMotors = motor_group(tlMotor01, blMotor11);
+motor_group rightMotors = motor_group(trMotor10, brMotor20);
 // Define Motor Groups End
 
 // Define Other Devices Start
@@ -43,9 +41,9 @@ float rotationScale = 360;
 float wheelCircumference = M_PI * wheelDiameter;
 
 // PID Tuning Values Start 
-float kP = 1.5;
+float kP = .8;
 float kI = 0.005;
-float kD = 0.4;
+float kD = 0.2;
 
 float tkP = 0.4;
 float tkI = 0.04;
@@ -274,7 +272,7 @@ int drivePID() {
       if (isSwinging == true){
          if (swingDirection == true) {
 
-            float currentRotation = reduce_0_to_360(inertia5.rotation(degrees)*360.0/rotationScale);
+            float currentRotation = reduce_0_to_360(inertia5.rotation(degrees));
 
             swingerror = reduce_negative_180_to_180(desiredswingAngle - currentRotation);
 
@@ -286,7 +284,7 @@ int drivePID() {
 
             swingpreverror = swingerror;
 
-            if(fabs(swingerror) <= swingI) {
+            if((currentRotation == (desiredAngle - toleranceSwing)) || (currentRotation == (desiredAngle + toleranceSwing))) {
                swingerror = 0;
                swingderivative = 0;
                swingtotalerror = 0;
@@ -295,6 +293,8 @@ int drivePID() {
                isSwinging = false;
                activePID = false;
             }
+
+            printf("%f\n", currentRotation);
 
             swingmotorPower = ((swingerror * skP) + (swingderivative * skD) + (swingtotalerror * skI)) / 12.7;
             printf("SMP %f\n", swingmotorPower);
@@ -322,7 +322,7 @@ int drivePID() {
 
             swingpreverror = swingerror;
 
-            if(fabs(swingerror) <= toleranceSwing) {
+            if((currentRotation == (desiredAngle - toleranceSwing)) || (currentRotation == (desiredAngle + toleranceSwing))) {
                swingerror = 0;
                swingderivative = 0;
                swingtotalerror = 0;
@@ -331,6 +331,8 @@ int drivePID() {
                isSwinging = false;
                activePID = false;
             }
+
+            printf("%f\n", currentRotation);
 
             swingmotorPower = ((swingerror * skP) + (swingderivative * skD) + (swingtotalerror * skI)) / 12.7;
 
@@ -405,7 +407,8 @@ int main() {
    prepSys();
    enabledrivePID = true;
    task PID( drivePID );
-   move(48.0, 0.0);
+   //move(48.0, 0.0);
+   turn_to_angle(90, true);
    // pray it works
 
 }
