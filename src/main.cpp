@@ -219,7 +219,7 @@ int drivePID() {
          }
 
          printf("LMP %f\n", lateralmotorPower);
-         Brain.Screen.printAt(1, 3, "LMP %f", lateralmotorPower);
+         Brain.Screen.print("LMP %f", lateralmotorPower);
 
          // Lateral PID End
       } else {
@@ -238,7 +238,7 @@ int drivePID() {
       float currentHeading = reduce_0_to_360(inertia5.heading(degrees)*360.0/rotationScale);
 
       printf("%f\n", currentHeading);
-      Brain.Screen.printAt(1, 5,"CH %f", currentHeading);
+      Brain.Screen.print("CH %f", currentHeading);
 
       turnerror = reduce_negative_180_to_180(desiredAngle - currentHeading);
       
@@ -283,7 +283,7 @@ int drivePID() {
       }
 
       printf("TMP %f\n", turnmotorPower);
-      Brain.Screen.printAt(1, 7,"TMP %f", turnmotorPower);
+      Brain.Screen.print("TMP %f", turnmotorPower);
       // Rotational PID End
       
       rightMotors.spin(forward, (lateralmotorPower - turnmotorPower), volt);
