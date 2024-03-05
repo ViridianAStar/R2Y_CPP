@@ -26,7 +26,7 @@ motor_group rightMotors = motor_group(trMotor10, brMotor20);
 // Define Motor Groups End
 
 // Define Other Devices Start
-inertial inertia5 = inertial(PORT5);
+inertial inertia14 = inertial(PORT14);
 controller driver = controller(primary);
 // Define Other Devices End
 
@@ -41,12 +41,12 @@ float rotationScale = 360;
 float wheelCircumference = M_PI * wheelDiameter;
 
 // PID Tuning Values Start 
-float kP = .75;
+float kP = .4;
 float kI = 0.005;
 float kD = 0.2;
 
-float tkP = .5;
-float tkI = 0.04;
+float tkP = .2;
+float tkI = 0.002;
 float tkD = 0.5;
 
 float skP = 0.3;
@@ -166,8 +166,8 @@ int drivePID() {
 
       if (rotationComplete == true && lateralComplete == true) {
          activePID = false;
-         rightMotors.stop(coast);
-         leftMotors.stop(coast);
+         rightMotors.stop(hold);
+         leftMotors.stop(hold);
          turning = false;
       } else if(activePID == true){
          rotationComplete = false;
@@ -221,7 +221,7 @@ int drivePID() {
             }
    
             printf("LMP %f\n", lateralmotorPower);
-            Brain.Screen.setCursor(1, 3);
+            Brain.Screen.setCursor(3, 1);
             Brain.Screen.print("LMP: ");
             Brain.Screen.print(lateralmotorPower);
    
@@ -239,10 +239,10 @@ int drivePID() {
          
          // borrowed from JAR-Template however it just gets the absolute of its current position
       
-         float currentHeading = reduce_0_to_360(inertia5.heading(degrees)*360.0/rotationScale);
+         float currentHeading = reduce_0_to_360(inertia14.rotation(degrees)*360.0/rotationScale);
    
          printf("%f\n", currentHeading);
-         Brain.Screen.setCursor(1, 5);
+         Brain.Screen.setCursor(5, 1);
          Brain.Screen.print("CH: ");
          Brain.Screen.print(currentHeading);
    
@@ -289,7 +289,7 @@ int drivePID() {
          }
    
          printf("TMP %f\n", turnmotorPower);
-         Brain.Screen.setCursor(1, 7);
+         Brain.Screen.setCursor(7, 1);
          Brain.Screen.print("TMP: ");
          Brain.Screen.print(turnmotorPower);
          // Rotational PID End
@@ -301,7 +301,7 @@ int drivePID() {
          // Swing PID Start
          if (swingDirection == true) {
 
-            float currentRotation = reduce_0_to_360(inertia5.heading(degrees));
+            float currentRotation = reduce_0_to_360(inertia14.rotation(degrees));
 
             swingerror = reduce_negative_180_to_180(desiredswingAngle - currentRotation);
 
@@ -339,7 +339,7 @@ int drivePID() {
 
          } else {
 
-            float currentRotation = reduce_0_to_360(inertia5.heading(degrees)*360.0/rotationScale);
+            float currentRotation = reduce_0_to_360(inertia14.rotation(degrees)*360.0/rotationScale);
 
             swingerror = reduce_negative_180_to_180(desiredswingAngle - currentRotation);
 
@@ -391,11 +391,11 @@ int drivePID() {
 
 void prepSys() {
    // Preamble that tells the robot it is where it should be to start
-   inertia5.calibrate(); // calibrate for accuracy
+   inertia14.calibrate(); // calibrate for accuracy
    leftMotors.resetPosition(); // reset their postion
    rightMotors.resetPosition(); // reset their position
-   inertia5.setHeading(0, deg); // tell it what its heading is
-   inertia5.setRotation(0, deg); // tell it what its rotation is (on xy plane)
+   inertia14.setHeading(0, deg); // tell it what its rotation is
+   inertia14.setRotation(0, deg); // tell it what its rotation is (on xy plane)
    leftMotors.setPosition(0, deg); // tell them they are at 0
    rightMotors.setPosition(0, deg); // tell them they are at 0
    wait(1850, msec);
@@ -449,9 +449,10 @@ int main() {
    enabledrivePID = true;
    task PID( drivePID );
    //move(48.0, 0.0);
-   move(12, 0);
+   move(48, 0);
+   move(0, 90);
    //wait(20, msec);
    //move(0, 90);
    //turn_to_angle(90, true);
-   enabledrivePID = false;
+   //enabledrivePID = false;
 }
