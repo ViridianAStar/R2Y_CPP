@@ -46,8 +46,8 @@ float kI = 0.005;
 float kD = 0.2;
 
 float tkP = .2;
-float tkI = 0.002;
-float tkD = 0.5;
+float tkI = 0.04;
+float tkD = 0.08;
 
 float skP = 0.3;
 float skI = 0.001;
@@ -73,7 +73,7 @@ float turnderivative = 0.0;
 
 // Antiintegral Wind-Up Values Start
 float lateralI = 15;
-float turnI = 21;
+float turnI = 31;
 float swingI = 2;
 // Antiintegral Wind-Up Values End
 
@@ -446,13 +446,70 @@ void turn_to_angle(float angle, bool direction) {
 
 int main() {
    prepSys();
-   enabledrivePID = true;
-   task PID( drivePID );
+   //enabledrivePID = true;
+   //task PID( drivePID );
    //move(48.0, 0.0);
-   move(48, 0);
-   move(0, 90);
+   desiredAngle = 90;
+   turning = true;
+   while(true){
+         float currentHeading = reduce_0_to_360(inertia14.rotation(degrees)*360.0/rotationScale);
+   
+         printf("%f\n", currentHeading);
+         Brain.Screen.setCursor(5, 1);
+         Brain.Screen.print("CH: ");
+         Brain.Screen.print(currentHeading);
+   
+         turnerror = reduce_negative_180_to_180(desiredAngle - currentHeading);
+         
+         // if both are true you are done moving if turn is true then you are done turning
+         if((currentHeading <= (desiredAngle+toleranceTurn) && fabs(turnerror) >= (desiredAngle-toleranceTurn)) && (fabs(error) <= (toleranceLateral) && fabs(error) >= (-1*toleranceLateral))) {
+            turnerror = 0;
+            turnderivative = 0;
+            turntotalerror = 0;
+            error = 0;
+            derivative = 0;
+            totalerror = 0;
+            
+         } else if(currentHeading <= (desiredAngle+toleranceTurn) && fabs(turnerror) >= (desiredAngle-toleranceTurn)) {
+            turnerror = 0;
+            turnderivative = 0;
+            turntotalerror = 0;
+         } else if (currentHeading <= (desiredAngle+toleranceTurn) && fabs(turnerror) >= (desiredAngle-toleranceTurn) && turning == true) {
+            turnerror = 0;
+            turnderivative = 0;
+            turntotalerror = 0;
+            rightMotors.stop(coast);
+            leftMotors.stop(coast);
+         }
+   
+         turnderivative = turnerror - turnpreverror;
+   
+         if (currentHeading <= desiredAngle+turnI || currentHeading >= desiredAngle-turnI) {
+            turntotalerror += turnerror;
+         }
+   
+         turnpreverror = turnerror;
+   
+         float turnmotorPower = ((turnerror * tkP) + (turnderivative * tkD) + (turntotalerror * tkI)) / 12.7; // TMP
+   
+         if (turnmotorPower > turnVoltagetotal) {
+            turnmotorPower = turnVoltagetotal;
+         } else if(turnmotorPower < (turnVoltagetotal * -1)) {
+            turnmotorPower = (turnVoltagetotal * -1);
+         }
+   
+         printf("TMP %f\n", turnmotorPower);
+         Brain.Screen.setCursor(7, 1);
+         Brain.Screen.print("TMP: ");
+         Brain.Screen.print(turnmotorPower);
+         // Rotational PID End
+         
+         rightMotors.spin(forward, (-1*turnmotorPower), volt);
+         leftMotors.spin (forward, (turnmotorPower), volt);
+  }
    //wait(20, msec);
    //move(0, 90);
    //turn_to_angle(90, true);
    //enabledrivePID = false;
 }
+
