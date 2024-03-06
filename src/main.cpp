@@ -31,7 +31,6 @@ controller driver = controller(primary);
 // Define Other Devices End
 
 // Global Variables Start
-bool enabledrivePID = false;
 float desiredDistance = 0.0;
 float desiredAngle = 0.0;
 float desiredswingAngle = 0.0;
@@ -39,11 +38,15 @@ float wheelDiameter = 3.25;
 float gearRatio = .6;
 float rotationScale = 360;
 float wheelCircumference = M_PI * wheelDiameter;
+int timerunning = 0;
+int timeout = 1250;
+int timetosettle = 100;
+int timeinactive = 0;
 
 // PID Tuning Values Start 
-float kP = .4;
-float kI = 0.005;
-float kD = 0.2;
+float lkP = .4;
+float lkI = 0.005;
+float lkD = 0.2;
 
 float tkP = .2;
 float tkI = 0.04;
@@ -53,23 +56,6 @@ float skP = 0.3;
 float skI = 0.001;
 float skD = 2;
 // PID Tuning Values End
-
-// Error and Derivative Values Start
-float error = 0.0;
-float preverror = 0.0;
-float totalerror = 0.0;
-float derivative = 0.0;
-
-float swingerror = 0.0;
-float swingpreverror = 0.0;
-float swingtotalerror = 0.0;
-float swingderivative = 0.0;
-
-float turnerror = 0.0;
-float turnpreverror = 0.0;
-float turntotalerror = 0.0;
-float turnderivative = 0.0;
-// Error and Derivative Values End
 
 // Antiintegral Wind-Up Values Start
 float lateralI = 15;
@@ -84,25 +70,26 @@ float toleranceSwing = 0.5;
 // Tolerance Values End
 
 // Voltage Limiters Start
-float lateralVoltagetotal = 12.7;
-float turnVoltagetotal = 12.7;
-float swingVoltagetotal = 12.7;
+float lateralMax = 12.7;
+float turnMax = 12.7;
+float swingMax = 12.7;
+float lateralMin = .7;
+float turnMin = .2;
+float swingMin = .7;
 // Voltage Limiters End
 
 // Swing and PID Activity Tracking Values Start
 bool activePID = false;
-bool turning = false;
-bool isSwinging = false;
-bool swingDirection = false;
+bool completedPID = false;
 // Swing and PID Activity Tracking Values End
 
 // Global Variables End
 
 // pass this your desired PID tuning values for the lateral PID
 void setlaterKvalues(float nkP, float nkI, float nkD){
-   kP = nkP;
-   kI = nkI;
-   kD = nkD;
+   lkP = nkP;
+   lkI = nkI;
+   lkD = nkD;
 }
 
 // same thing but for turn values
@@ -121,9 +108,9 @@ void setswingKvalues(float nskP, float nskI, float nskD){
 
 // mass edit voltage limiters
 void setvoltageLimits(float nlvT, float ntvT, float nsvT) {
-   lateralVoltagetotal = nlvT;
-   turnVoltagetotal = ntvT;
-   swingVoltagetotal = nsvT;
+   lateralMax = nlvT;
+   turnMax = ntvT;
+   swingMax = nsvT;
 }
 
 // Functions borrowed from JAR-Template Start
@@ -154,240 +141,91 @@ float reduce_negative_90_to_90(float angle) {
 
 // PID Start
 
-// a task designed to control the drivetrain via PID takes no input.
-int drivePID() { 
-   bool rotationComplete = false;
-   bool lateralComplete = false;
-   float swingmotorPower = 0.0;
-   float lateralmotorPower = 0;
-   Brain.Screen.setPenColor(green);
-   int cycles = 0;
-   while (enabledrivePID) {
 
-      if (rotationComplete == true && lateralComplete == true) {
-         activePID = false;
-         rightMotors.stop(hold);
-         leftMotors.stop(hold);
-         turning = false;
-      } else if(activePID == true){
-         rotationComplete = false;
-         lateralComplete = false;
+   PID::PID(float error, float integral, float derivative, float kP, float kI, float kD, float toleranceValue, float aiwValue, float max, float min) :
+   error(error),
+   integral(integral),
+   derivative(derivative),
+   kP(kP),
+   kI(kI),
+   kD(kD),
+   toleranceValue(toleranceValue),
+   aiwValue(aiwValue),
+   max(max),
+   min(min)
+   {};
+
+   // a task designed to control the drivetrain via PID takes no input.
+   float PID::sysPIDcompute(float error) {
+      // if within bounds add error to your integral value
+      if (fabs(error) < aiwValue) {
+         integral += error;
+      }
+      // if your error is beyond 0 eliminates integral
+      if ((error<0 && preverror>0) || (error>0 && preverror<0)){
+         integral = 0;
       }
 
-      // Motor Positions Start
-      float leftPosition = leftMotors.position(degrees);
-      // Get the mean position of motors on the left side of the drivetrain
-      float rightPosition = rightMotors.position(degrees);
+      derivative = error - preverror;
 
-      float averagePosition = (leftPosition + rightPosition) / 2; // get the average position of both sides of the drive train
-      // Motor Position End
+      float driveoutput = ((kP * error) + (kI * integral) + (kD * derivative));
 
-      if (isSwinging == false){
-
-         if (turning == false) {
-            // Lateral PID Start
-            error = desiredDistance - averagePosition;
-   
-            derivative = error - preverror;
-   
-            if (fabs(error) < lateralI) {
-               totalerror += error;
-            }
-   
-            preverror = error;
-   
-            // If you are within error bounds register as complete
-            if (fabs(error) <= toleranceLateral && fabs(error) >= -1*toleranceLateral) {
-               lateralComplete = true;
-            }
-   
-   
-            /*
-            Error is the difference between the position you want to be and where you currently are ie how far you have left to go
-            Derivative is the difference between your current distance and your previous distance ie how far you have traveled in one cycle
-            Total Error is your compounding error ie how far you have traveled note that this only runs within certain bounds to prevent windup
-   
-            We multiply these values by our PID tuning values to acquire a value that specifies the voltage to move the motors at.
-            thus giving us our lateral motor power or LMP
-            */
-        
-            lateralmotorPower = ((error * kP) + (derivative * kD) + (totalerror * kI)) / 12.7; //LMP
-   
-            // keep motor power within limits
-            if (lateralmotorPower > lateralVoltagetotal) {
-               lateralmotorPower = lateralVoltagetotal;
-            } else if(lateralmotorPower < (lateralVoltagetotal * -1)) {
-               lateralmotorPower = (lateralVoltagetotal * -1);
-            }
-   
-            printf("LMP %f\n", lateralmotorPower);
-            Brain.Screen.setCursor(3, 1);
-            Brain.Screen.print("LMP: ");
-            Brain.Screen.print(lateralmotorPower);
-   
-            // Lateral PID End
-         } else {
-            lateralComplete = true;
-         }
-   
-         // Rotational PID Start
-         /*
-         This is slightly more complex as it requires the use of an inertial sensor but has the capacity to operate without it.
-         It is recommended that you use an inertial sensor.
-         Outside of that, it is exactly the same as before.
-         */
-         
-         // borrowed from JAR-Template however it just gets the absolute of its current position
-      
-         float currentHeading = reduce_0_to_360(inertia14.rotation(degrees)*360.0/rotationScale);
-   
-         printf("%f\n", currentHeading);
-         Brain.Screen.setCursor(5, 1);
-         Brain.Screen.print("CH: ");
-         Brain.Screen.print(currentHeading);
-   
-         turnerror = reduce_negative_180_to_180(desiredAngle - currentHeading);
-         
-         // if both are true you are done moving if turn is true then you are done turning
-         if((currentHeading <= (desiredAngle+toleranceTurn) && fabs(turnerror) >= (desiredAngle-toleranceTurn)) && (fabs(error) <= (toleranceLateral) && fabs(error) >= (-1*toleranceLateral))) {
-            turnerror = 0;
-            turnderivative = 0;
-            turntotalerror = 0;
-            rotationComplete = true;
-            error = 0;
-            derivative = 0;
-            totalerror = 0;
-            
-         } else if(currentHeading <= (desiredAngle+toleranceTurn) && fabs(turnerror) >= (desiredAngle-toleranceTurn)) {
-            turnerror = 0;
-            turnderivative = 0;
-            turntotalerror = 0;
-            rotationComplete = true;
-         } else if (currentHeading <= (desiredAngle+toleranceTurn) && fabs(turnerror) >= (desiredAngle-toleranceTurn) && turning == true) {
-            turnerror = 0;
-            turnderivative = 0;
-            turntotalerror = 0;
-            rotationComplete = true;
-            rightMotors.stop(coast);
-            leftMotors.stop(coast);
-         }
-   
-         turnderivative = turnerror - turnpreverror;
-   
-         if (fabs(turnerror) < turnI) {
-            turntotalerror += turnerror;
-         }
-   
-         turnpreverror = turnerror;
-   
-         float turnmotorPower = ((turnerror * tkP) + (turnderivative * tkD) + (turntotalerror * tkI)) / 12.7; // TMP
-   
-         if (turnmotorPower > turnVoltagetotal) {
-            turnmotorPower = turnVoltagetotal;
-         } else if(turnmotorPower < (turnVoltagetotal * -1)) {
-            turnmotorPower = (turnVoltagetotal * -1);
-         }
-   
-         printf("TMP %f\n", turnmotorPower);
-         Brain.Screen.setCursor(7, 1);
-         Brain.Screen.print("TMP: ");
-         Brain.Screen.print(turnmotorPower);
-         // Rotational PID End
-         
-         rightMotors.spin(forward, (lateralmotorPower - turnmotorPower), volt);
-         leftMotors.spin (forward, (lateralmotorPower + turnmotorPower), volt);
-   
+      if (fabs(error) <= toleranceValue) {
+         timeinactive += 10;
       } else {
-         // Swing PID Start
-         if (swingDirection == true) {
-
-            float currentRotation = reduce_0_to_360(inertia14.rotation(degrees));
-
-            swingerror = reduce_negative_180_to_180(desiredswingAngle - currentRotation);
-
-            swingderivative = swingerror - swingpreverror;
-
-            if (fabs(swingerror) < toleranceSwing) {
-               swingtotalerror += swingerror;
-            }
-
-            swingpreverror = swingerror;
-
-            if((currentRotation <= (desiredAngle + toleranceSwing)) && (currentRotation >= (desiredAngle - toleranceSwing))) {
-               swingerror = 0;
-               swingderivative = 0;
-               swingtotalerror = 0;
-               rightMotors.stop(coast);
-               leftMotors.stop(coast);
-               isSwinging = false;
-               activePID = false;
-            }
-
-            printf("%f\n", currentRotation);
-
-            swingmotorPower = ((swingerror * skP) + (swingderivative * skD) + (swingtotalerror * skI)) / 12.7;
-            printf("SMP %f\n", swingmotorPower);
-
-            if (swingmotorPower > swingVoltagetotal) {
-               swingmotorPower = swingVoltagetotal;
-            } else if(swingmotorPower < (swingVoltagetotal * -1)) {
-               swingmotorPower = (swingVoltagetotal * -1);
-            }
-
-            leftMotors.spin(forward, swingmotorPower, volt);
-            rightMotors.stop(hold);
-
-         } else {
-
-            float currentRotation = reduce_0_to_360(inertia14.rotation(degrees)*360.0/rotationScale);
-
-            swingerror = reduce_negative_180_to_180(desiredswingAngle - currentRotation);
-
-            swingderivative = swingerror - swingpreverror;
-
-            if (fabs(swingerror) < swingI) {
-               swingtotalerror += swingerror;
-            }
-
-            swingpreverror = swingerror;
-
-            if((currentRotation <= (desiredAngle + toleranceSwing)) && (currentRotation >= (desiredAngle - toleranceSwing))) {
-               swingerror = 0;
-               swingderivative = 0;
-               swingtotalerror = 0;
-               rightMotors.stop(hold);
-               leftMotors.stop(hold);
-               isSwinging = false;
-               activePID = false;
-            }
-
-            printf("CR %f\n", currentRotation);
-
-            swingmotorPower = ((swingerror * skP) + (swingderivative * skD) + (swingtotalerror * skI)) / 12.7;
-
-            if (swingmotorPower > swingVoltagetotal) {
-               swingmotorPower = swingVoltagetotal;
-            } else if(swingmotorPower < (swingVoltagetotal * -1)) {
-               swingmotorPower = (swingVoltagetotal * -1);
-            }
-
-            printf("SMP %f\n", swingmotorPower);
-
-            rightMotors.spin(reverse, swingmotorPower, volt);
-            leftMotors.stop(hold);
-         }
+         timeinactive = 0;
       }
-      // Swing PID End
-      task::sleep(50); // time between updates to the PID loop.
-      Brain.Screen.clearScreen();
-      cycles += 1;
-      printf("Cycles: %i\n", cycles);
+
+      timerunning += 10;
+
+      preverror = error;
+
+      if (driveoutput > max) {
+         driveoutput = max;
+      } else if (driveoutput < min) {
+         driveoutput = min;
+      }
+
+      return (driveoutput);
+
    }
 
-   return(1);
-}
+   bool PID::isactivePID() {
+      if (timerunning > timeout && timeout != 0) {
+         return (false);
+      } else if (timeinactive >= timetosettle) { 
+         return (false);
+      } else {
+         return (true);
+      }
+   }
 
 // PID End
+
+// Drive Control Start
+// distance should be in inches but if it is not you can always add a modifier angle is in degrees by default
+void movedistance(float distance) {
+   // convert linear distance to angular distance
+   
+   // when PID is available for tasking, convert distance to degrees and/or tell it the desired angle to turn to and tell it that it is active
+   float degreesWanted = (((distance*360)*gearRatio))/wheelCircumference;
+   desiredDistance = degreesWanted;
+
+   // dont worry about resetting
+   float initialavgposition = (leftMotors.position(degrees) + rightMotors.position(degrees)) / 2;
+
+   while (isactivePID() == true) {
+
+   }
+
+}
+
+// true for left false for right
+void point_to_angle(float angle) {
+
+}
+
+// Drive Control End
 
 void prepSys() {
    // Preamble that tells the robot it is where it should be to start
@@ -401,115 +239,8 @@ void prepSys() {
    wait(1850, msec);
 }
 
-// distance should be in inches but if it is not you can always add a modifier angle is in degrees by default
-void move(float distance, float angle) {
-// convert linear distance to angular distance
-   while (activePID == true) {
-      // if another task is running do not run
-      wait(5, msec);
-   }
-   if (activePID == false){
-
-      leftMotors.setPosition(0, deg); // tell them they are at 0
-      rightMotors.setPosition(0, deg); // tell them they are at 0
-      // when PID is available for tasking, convert distance to degrees and/or tell it the desired angle to turn to and tell it that it is active
-      float degreesWanted = (((distance*360)*gearRatio))/wheelCircumference;
-      desiredDistance = degreesWanted;
-
-      if(degreesWanted == 0) {
-         turning = true;
-      }
-
-      desiredAngle = angle;
-      activePID = true;
-   }
-}
-
-// true for left false for right
-void turn_to_angle(float angle, bool direction) {
-   while (activePID == true) {
-      // if another task is running do not run
-      wait(5, msec);
-   }
-   if (activePID == false) {
-
-      leftMotors.setPosition(0, deg); // tell them they are at 0
-      rightMotors.setPosition(0, deg); // tell them they are at 0
-      // when PID is available for tasking, tell it that it is swinging and that it is active
-      // also tell it if it is left or right handed
-      swingDirection = direction;
-      desiredswingAngle = angle;
-      isSwinging = true;
-      activePID = true;
-   }
-}
-
 int main() {
    prepSys();
-   //enabledrivePID = true;
-   //task PID( drivePID );
-   //move(48.0, 0.0);
-   desiredAngle = 90;
-   turning = true;
-   while(true){
-         float currentHeading = reduce_0_to_360(inertia14.rotation(degrees)*360.0/rotationScale);
    
-         printf("%f\n", currentHeading);
-         Brain.Screen.setCursor(5, 1);
-         Brain.Screen.print("CH: ");
-         Brain.Screen.print(currentHeading);
-   
-         turnerror = reduce_negative_180_to_180(desiredAngle - currentHeading);
-         
-         // if both are true you are done moving if turn is true then you are done turning
-         if((currentHeading <= (desiredAngle+toleranceTurn) && fabs(turnerror) >= (desiredAngle-toleranceTurn)) && (fabs(error) <= (toleranceLateral) && fabs(error) >= (-1*toleranceLateral))) {
-            turnerror = 0;
-            turnderivative = 0;
-            turntotalerror = 0;
-            error = 0;
-            derivative = 0;
-            totalerror = 0;
-            
-         } else if(currentHeading <= (desiredAngle+toleranceTurn) && fabs(turnerror) >= (desiredAngle-toleranceTurn)) {
-            turnerror = 0;
-            turnderivative = 0;
-            turntotalerror = 0;
-         } else if (currentHeading <= (desiredAngle+toleranceTurn) && fabs(turnerror) >= (desiredAngle-toleranceTurn) && turning == true) {
-            turnerror = 0;
-            turnderivative = 0;
-            turntotalerror = 0;
-            rightMotors.stop(coast);
-            leftMotors.stop(coast);
-         }
-   
-         turnderivative = turnerror - turnpreverror;
-   
-         if (currentHeading <= desiredAngle+turnI || currentHeading >= desiredAngle-turnI) {
-            turntotalerror += turnerror;
-         }
-   
-         turnpreverror = turnerror;
-   
-         float turnmotorPower = ((turnerror * tkP) + (turnderivative * tkD) + (turntotalerror * tkI)) / 12.7; // TMP
-   
-         if (turnmotorPower > turnVoltagetotal) {
-            turnmotorPower = turnVoltagetotal;
-         } else if(turnmotorPower < (turnVoltagetotal * -1)) {
-            turnmotorPower = (turnVoltagetotal * -1);
-         }
-   
-         printf("TMP %f\n", turnmotorPower);
-         Brain.Screen.setCursor(7, 1);
-         Brain.Screen.print("TMP: ");
-         Brain.Screen.print(turnmotorPower);
-         // Rotational PID End
-         
-         rightMotors.spin(forward, (-1*turnmotorPower), volt);
-         leftMotors.spin (forward, (turnmotorPower), volt);
-  }
-   //wait(20, msec);
-   //move(0, 90);
-   //turn_to_angle(90, true);
-   //enabledrivePID = false;
 }
 
