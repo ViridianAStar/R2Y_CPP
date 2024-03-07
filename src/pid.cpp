@@ -14,6 +14,12 @@ struct lateralpidData {
     float timeout;
 
     float settletime;
+
+    float integral;
+    
+    float derivative;
+    
+    float preverror;
 };
 
 struct generalPIDData {
@@ -55,27 +61,34 @@ void getpidData(float angle, float distance, float currentAvg) {
 }
 
 float lateralPID() {
-    float integral;
-    float derivative;
-    float preverror;
 
     float error = (lateraldesireds.distance - lateraldesireds.currentAvg);
 
     if (fabs(error) < genPID.lateralstarti) {
-        integral += error;
+        lateraldesireds.integral += error;
     }
 
-    derivative = error - preverror;
-        
-    preverror = error;
+    if ((lateraldesireds.derivative < 0 && error > 0) ||(lateraldesireds.derivative > 0 && error < 0)) {
+        lateraldesireds.integral = 0;
+    }
 
-    float power = ((genPID.lkP * error) + (genPID.lkI * integral) + (genPID.lkD * derivative))/12.7;
+    lateraldesireds.derivative = error - lateraldesireds.preverror;
+        
+    lateraldesireds.preverror = error;
+
+    float power = ((genPID.lkP * error) + (genPID.lkI * lateraldesireds.integral) + (genPID.lkD * lateraldesireds.derivative))/12.7;
+
+    if (power < genPID.min) {
+        power = genPID.min;
+    } else if (power > genPID.max) {
+        power = genPID.max;
+    }
 
     return power;
 }
 
 bool lateralActive() {
-    if (true) {
+    if (lateraldesireds.timeout) {
 
     }
 
