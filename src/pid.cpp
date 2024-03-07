@@ -1,52 +1,88 @@
 #include "vex.h"
 
-PID::PID(float error, float integral, float derivative, float kP, float kI, float kD, float toleranceValue, float aiwValue, float max, float min) :
-   error(&error),
-   integral(&integral),
-   derivative(&derivative),
-   kP(&kP),
-   kI(&kI),
-   kD(&kD),
-   toleranceValue(&toleranceValue),
-   aiwValue(&aiwValue),
-   max(&max),
-   min(&min)
-{};
+using namespace vex;
 
-// a task designed to control the drivetrain via PID takes no input.
-float PID::sysPIDcompute(float error, float max, float min) {
-   // if within bounds add error to your integral value
-   if (fabs(error) < aiwValue) {
-      integral += error;
-   }
-   // if your error is beyond 0 eliminates integral
-   if ((error<0 && preverror>0) || (error>0 && preverror<0)){
-      integral = 0;
-   }
-   derivative = error - preverror;
-   float driveoutput = ((kP * error) + (kI * integral) + (kD * derivative));
-   if (fabs(error) <= toleranceValue) {
-      timeinactive += 10;
-   } else {
-      timeinactive = 0;
-   }
-   timerunning += 10;
-   preverror = error;
-   if (driveoutput > max) {
-      driveoutput = max;
-   } else if (driveoutput < min) {
-      driveoutput = min;
-   }
-   return (driveoutput);
+// structure for lateral data
+struct lateralpidData {
+    // distance ie how far you want to go
+    float distance;
+    // what you want your heading to be
+    float angle;
+    // your encoder position currently
+    float currentAvg;
+
+    float timeout;
+
+    float settletime;
+};
+
+struct generalPIDData {
+    // maximum voltage
+    float max;
+    // minimum voltage
+    float min;
+    // lateral starti (anti-integral windup)
+    float lateralstarti;
+    // rotational starti
+    float rotationstarti;
+    // swing starti
+    float swingstarti;
+
+    // pid constants
+    float lkP = .4;
+    float lkI = 0.005;
+    float lkD = 0.2;
+
+    float tkP = .2;
+    float tkI = 0.04;
+    float tkD = 0.08;
+
+    float skP = 0.3;
+    float skI = 0.001;
+    float skD = 2;
+    
+};
+
+// initialize lateraldesireds
+lateralpidData lateraldesireds;
+
+generalPIDData genPID;
+
+void getpidData(float angle, float distance, float currentAvg) {
+    lateraldesireds.angle = angle;
+    lateraldesireds.distance = distance+currentAvg;
+    lateraldesireds.currentAvg = currentAvg;
 }
 
-// Checks if PID is active and running
-bool PID::isactivePID() {
-   if (timerunning > timeout && timeout != 0) {
-      return (false);
-   } else if (timeinactive >= timetosettle) { 
-      return (false);
-   } else {
-      return (true);
-   }
+float lateralPID() {
+    float integral;
+    float derivative;
+    float preverror;
+
+    float error = (lateraldesireds.distance - lateraldesireds.currentAvg);
+
+    if (fabs(error) < genPID.lateralstarti) {
+        integral += error;
+    }
+
+    derivative = error - preverror;
+        
+    preverror = error;
+
+    float power = ((genPID.lkP * error) + (genPID.lkI * integral) + (genPID.lkD * derivative))/12.7;
+
+    return power;
+}
+
+bool lateralActive() {
+    if (true) {
+
+    }
+
+}
+
+float headingPID() {
+
+
+    return 0;
 }

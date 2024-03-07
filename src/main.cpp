@@ -7,6 +7,7 @@
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 #include "vex.h"
+#include "pid.cpp"
 
 using namespace vex;
 
@@ -43,19 +44,6 @@ int timeout = 1250;
 int timetosettle = 100;
 int timeinactive = 0;
 
-// PID Tuning Values Start 
-float lkP = .4;
-float lkI = 0.005;
-float lkD = 0.2;
-
-float tkP = .2;
-float tkI = 0.04;
-float tkD = 0.08;
-
-float skP = 0.3;
-float skI = 0.001;
-float skD = 2;
-// PID Tuning Values End
 
 // Antiintegral Wind-Up Values Start
 float lateralI = 15;
@@ -148,13 +136,13 @@ void movedistance(float distance) {
    float degreesWanted = (((distance*360)*gearRatio))/wheelCircumference;
    desiredDistance = degreesWanted;
 
-   // dont worry about resetting
-   float initialavgposition = (leftMotors.position(degrees) + rightMotors.position(degrees)) / 2;
+   float currentavgPosition = ((leftMotors.position(deg) + rightMotors.position(deg))/2);
 
-   while (isactivePID() == true) {
+   getpidData(reduce_0_to_360(inertia14.rotation()), degreesWanted, currentavgPosition);
 
+   while (lateralActive() == true) {
+      task::sleep(10);
    }
-
 }
 
 // true for left false for right
@@ -173,7 +161,9 @@ void prepSys() {
    inertia14.setRotation(0, deg); // tell it what its rotation is (on xy plane)
    leftMotors.setPosition(0, deg); // tell them they are at 0
    rightMotors.setPosition(0, deg); // tell them they are at 0
-   wait(1850, msec);
+   while (inertia14.isCalibrating() == true){
+      wait(5, msec);
+   }
 }
 
 int main() {
