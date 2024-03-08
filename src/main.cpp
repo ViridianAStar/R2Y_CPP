@@ -71,79 +71,11 @@ bool activePID = false;
 bool completedPID = false;
 // Swing and PID Activity Tracking Values End
 
-// Global Variables End
-
-// pass this your desired PID tuning values for the lateral PID
-void setlaterKvalues(float nkP, float nkI, float nkD){
-   lkP = nkP;
-   lkI = nkI;
-   lkD = nkD;
-}
-
-// same thing but for turn values
-void setturnKvalues(float ntkP, float ntkI, float ntkD){
-   tkP = ntkP;
-   tkI = ntkI;
-   tkD = ntkD;
-}
-
-// same thing but for swing values
-void setswingKvalues(float nskP, float nskI, float nskD){
-   skP = nskP;
-   skI = nskI;
-   skD = nskD;
-}
-
-// mass edit voltage limiters
-void setvoltageLimits(float nlvT, float ntvT, float nsvT) {
-   lateralMax = nlvT;
-   turnMax = ntvT;
-   swingMax = nsvT;
-}
-
-// Functions borrowed from JAR-Template Start
-float reduce_0_to_360(float angle) {
-  while(!(angle >= 0 && angle < 360)) {
-    if( angle < 0 ) { angle += 360; }
-    if(angle >= 360) { angle -= 360; }
-  }
-  return(angle);
-}
-
-float reduce_negative_180_to_180(float angle) {
-  while(!(angle >= -180 && angle < 180)) {
-    if( angle < -180 ) { angle += 360; }
-    if(angle >= 180) { angle -= 360; }
-  }
-  return(angle);
-}
-
-float reduce_negative_90_to_90(float angle) {
-  while(!(angle >= -90 && angle < 90)) {
-    if( angle < -90 ) { angle += 180; }
-    if(angle >= 90) { angle -= 180; }
-  }
-  return(angle);
-}
-// Functions borrowed from JAR-Template End
+// Global Variables End 
 
 // Drive Control Start
 // distance should be in inches but if it is not you can always add a modifier angle is in degrees by default
-void movedistance(float distance) {
-   // convert linear distance to angular distance
-   
-   // when PID is available for tasking, convert distance to degrees and/or tell it the desired angle to turn to and tell it that it is active
-   float degreesWanted = (((distance*360)*gearRatio))/wheelCircumference;
-   desiredDistance = degreesWanted;
 
-   float currentavgPosition = ((leftMotors.position(deg) + rightMotors.position(deg))/2);
-
-   getpidData(reduce_0_to_360(inertia14.rotation()), degreesWanted, currentavgPosition);
-
-   while (lateralActive() == true) {
-      task::sleep(10);
-   }
-}
 
 // true for left false for right
 void point_to_angle(float angle) {

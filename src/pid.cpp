@@ -2,100 +2,122 @@
 
 using namespace vex;
 
-// structure for lateral data
-struct lateralpidData {
-    // distance ie how far you want to go
-    float distance;
-    // what you want your heading to be
-    float angle;
-    // your encoder position currently
-    float currentAvg;
-
-    float timeout;
-
-    float settletime;
-
-    float integral;
-    
-    float derivative;
-    
-    float preverror;
-};
-
-struct generalPIDData {
-    // maximum voltage
-    float max;
-    // minimum voltage
-    float min;
-    // lateral starti (anti-integral windup)
-    float lateralstarti;
-    // rotational starti
-    float rotationstarti;
-    // swing starti
-    float swingstarti;
-
-    // pid constants
-    float lkP = .4;
-    float lkI = 0.005;
-    float lkD = 0.2;
-
-    float tkP = .2;
-    float tkI = 0.04;
-    float tkD = 0.08;
-
-    float skP = 0.3;
-    float skI = 0.001;
-    float skD = 2;
-    
-};
-
-// initialize lateraldesireds
-lateralpidData lateraldesireds;
-
-generalPIDData genPID;
-
-void getpidData(float angle, float distance, float currentAvg) {
-    lateraldesireds.angle = angle;
-    lateraldesireds.distance = distance+currentAvg;
-    lateraldesireds.currentAvg = currentAvg;
-}
-
-float lateralPID() {
-
-    float error = (lateraldesireds.distance - lateraldesireds.currentAvg);
-
-    if (fabs(error) < genPID.lateralstarti) {
-        lateraldesireds.integral += error;
-    }
-
-    if ((lateraldesireds.derivative < 0 && error > 0) ||(lateraldesireds.derivative > 0 && error < 0)) {
-        lateraldesireds.integral = 0;
-    }
-
-    lateraldesireds.derivative = error - lateraldesireds.preverror;
+class pid {
+         
+    int Timeout;
         
-    lateraldesireds.preverror = error;
+    int settleTime;
+            
+    float integral;
+           
+    float derivative;
+          
+    float preverror;
 
-    float power = ((genPID.lkP * error) + (genPID.lkI * lateraldesireds.integral) + (genPID.lkD * lateraldesireds.derivative))/12.7;
+    // p tuning constant
+    float kP;
 
-    if (power < genPID.min) {
-        power = genPID.min;
-    } else if (power > genPID.max) {
-        power = genPID.max;
-    }
+    // i tuning constant
+    float kI;
 
-    return power;
-}
+    // d tuning constant
+    float kD;
 
-bool lateralActive() {
-    if (lateraldesireds.timeout) {
+    // value at which integral value starts compounding
+    float aiwValue;
+    
+    float settleBounds;
 
-    }
+    int runningtime = 0;
 
-}
+    int settledtime = 0;
 
-float headingPID() {
+    public:
+        pid(float kp, float ki, float kd, float aiwvalue, int timeout, int settletime, float settlebounds){
+           kP = kp;
+           kI = ki;
+           kD = kd;
+           aiwValue = aiwvalue;
 
+           if ((timeout % 10) >= 5) {
+               Timeout = timeout + (10 - (timeout % 10));
+           } else if ((timeout % 10) >= 1) {
+               Timeout = timeout - (timeout % 10);
+           } else {
+             Timeout = timeout;   
+           }
 
-    return 0;
-}
+           if ((settletime % 10) >= 5) {
+               settleTime = settletime + (10 - (settletime % 10));
+           } else if ((settletime % 10) >= 1) {
+               settleTime = settletime - (settletime % 10);
+           } else {
+             settleTime = settletime;   
+           }
+
+           settleBounds = settlebounds;
+        }
+             
+        // maximum voltage
+        float max = 12.7;
+        // minimum voltage
+        float min = 0.5;
+
+        // change min and max values
+        float modifyminmax(float newMin, float newMax) {
+            max = newMax;
+            min = newMin;
+        }
+        
+        // ensure voltage mins and maxes on inputVoltage
+        float calculateoutput(float inputVoltage) {
+
+            if (inputVoltage < min) {
+                return min;
+            } else if (inputVoltage > max) {
+                return max;
+            }
+
+            return inputVoltage;
+        }
+
+        // calculate pid voltage
+        float calcPID(float error) {
+            
+            if (fabs(error) < aiwValue) {
+                integral += error;
+            }
+
+            if ((error < 0 && preverror > 0) || (error > 0 && preverror < 0)) {
+                integral = 0;
+            }
+
+            derivative = preverror - error;
+
+            float rawvalue = ((kP*error) + (kI * integral) + (kD * derivative)) / 12.7;
+
+            preverror = error;
+
+            if (fabs(error) < settleBounds) {
+                settledtime += 10;
+            } else {
+                settledtime = 0;
+            }
+
+            runningtime += 10;
+            
+            return calculateoutput(rawvalue);
+        }
+
+        bool active() {
+            if (Timeout != 0 && runningtime >= Timeout) {
+                return false;
+            }
+
+            if (settledtime >= settleTime) {
+                return false;
+            }
+
+            return true;
+        }
+};  
