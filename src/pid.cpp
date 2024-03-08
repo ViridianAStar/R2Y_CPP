@@ -3,7 +3,6 @@
 using namespace vex;
 
 class pid {
-         
     int Timeout;
         
     int settleTime;
@@ -32,8 +31,11 @@ class pid {
 
     int settledtime = 0;
 
+    // maximum voltage
+    float max = 12.7;
+
     public:
-        pid(float kp, float ki, float kd, float aiwvalue, int timeout, int settletime, float settlebounds){
+        pid(float kp, float ki, float kd, float aiwvalue, int timeout, int settletime, float settlebounds, float Max){
            kP = kp;
            kI = ki;
            kD = kd;
@@ -56,24 +58,15 @@ class pid {
            }
 
            settleBounds = settlebounds;
-        }
-             
-        // maximum voltage
-        float max = 12.7;
-        // minimum voltage
-        float min = 0.5;
 
-        // change min and max values
-        float modifyminmax(float newMin, float newMax) {
-            max = newMax;
-            min = newMin;
+           max = Max;
         }
         
         // ensure voltage mins and maxes on inputVoltage
         float calculateoutput(float inputVoltage) {
 
-            if (inputVoltage < min) {
-                return min;
+            if (inputVoltage < -max) {
+                return -max;
             } else if (inputVoltage > max) {
                 return max;
             }

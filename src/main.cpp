@@ -7,7 +7,6 @@
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 #include "vex.h"
-#include "pid.cpp"
 #include "movement.cpp"
 
 using namespace vex;

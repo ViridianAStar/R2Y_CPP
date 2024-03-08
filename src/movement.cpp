@@ -27,6 +27,10 @@ class movement {
   float raiwValue = 15;
   float saiwValue = 15;
 
+  float tmv;
+  float smv;
+  float lmv;
+
 
   int port;
   float gearRatio;
@@ -63,7 +67,7 @@ class movement {
   
   
   public:
-      movement(motor_group left, motor_group right, int inertialport, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, int timeout, int settletime) {
+      movement(motor_group left, motor_group right, int inertialport, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, int timeout, int settletime, float TMV, float SMV, float LMV) {
         leftside = left;
         rightside = right;
         port = inertialport;
@@ -84,16 +88,51 @@ class movement {
 
         settleTime = settletime;
         Timeout = timeout;
+
+        tmv = TMV;
+        lmv = LMV;
+        smv = SMV;
       }
   
       void move_distance(float distance, float desired_heading) {
         float degreesWanted = (((distance*360)*gearRatio))/circumference;
-        float currentavgPosition = ((leftside.position(deg) + rightside.position(deg))/2);
-        
+        float initialavgPosition = ((leftside.position(deg) + rightside.position(deg))/2);
+        float avgPositon = initialavgPosition;
         float heading = reduce_0_to_360(rotationalSensor.rotation());
-        pid lateral = pid(lkP, lkI, lkD, laiwValue, Timeout, settleTime, lsettleBounds);
-        pid rotational = pid(rkP, rkI, rkD, raiwValue, Timeout, settleTime, rsettleBounds);
+        pid lateral = pid(lkP, lkI, lkD, laiwValue, Timeout, settleTime, lsettleBounds, lmv);
+        pid rotational = pid(rkP, rkI, rkD, raiwValue, Timeout, settleTime, rsettleBounds, tmv);
         
-         
+        while (lateral.active() == true) {
+          avgPositon = ((leftside.position(deg) + rightside.position(deg))/2);
+          float lateralerror = (degreesWanted + initialavgPosition) - avgPositon;
+          float headingerror = reduce_negative_180_to_180(desired_heading - heading);
+
+          leftside.spin(forward, (lateral.calcPID(lateralerror) + rotational.calcPID(headingerror)), volt);
+          rightside.spin(forward, (lateral.calcPID(lateralerror) - rotational.calcPID(headingerror)), volt);
+
+          task::sleep(10);
+        }
+
+        leftside.stop(hold);
+        rightside.stop(hold);
+      }
+
+      void point_at_angle(float angle) {
+        float heading = reduce_0_to_360(rotationalSensor.rotation());
+
+        pid rotational = pid(rkP, rkI, rkD, raiwValue, Timeout, settleTime, rsettleBounds, tmv);
+
+        while (rotational.active() == true) {
+
+          float rotationalerror = reduce_negative_180_to_180(angle - heading);
+
+          leftside.spin(forward, rotational.calcPID(rotationalerror), volt);
+          rightside.spin(forward, -rotational.calcPID(rotationalerror), volt);
+
+          task::sleep(10);
+        }
+
+        leftside.stop(hold);
+        rightside.stop(hold);
       }
 };
