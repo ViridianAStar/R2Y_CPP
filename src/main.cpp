@@ -8,6 +8,7 @@
 /*----------------------------------------------------------------------------*/
 #include "vex.h"
 #include "pid.cpp"
+#include "movement.cpp"
 
 using namespace vex;
 
@@ -70,6 +71,8 @@ float swingMin = .7;
 bool activePID = false;
 bool completedPID = false;
 // Swing and PID Activity Tracking Values End
+
+movement driveControl = movement(leftMotors, rightMotors, 14, gearRatio, 3.25, .5, 0.005, 0.7, 0.8, 0.008, 0.5, 0.75, 0.0075, 0.5, 1000, 150);
 
 // Global Variables End 
 

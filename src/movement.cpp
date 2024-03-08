@@ -5,20 +5,29 @@ using namespace vex;
 
 class movement {
 
-  float lkP = 0.4;
-  float lkI = 0.004;
-  float lkD = 0.5;
-  
-  float rkP = 0.4;
-  float rkI = 0.004;
-  float rkD = 0.5;
-  
-  float skP = 0.4;
-  float skI = 0.004;
-  float skD = 0.5;
+  float lkP;
+  float lkI;
+  float lkD;
+        
+  float rkP;
+  float rkI;
+  float rkD;
+        
+  float skP;
+  float skI;
+  float skD;
 
-  float settlebounds;
-  
+  float lsettleBounds = 5;
+  float rsettleBounds = 5;
+  float ssettleBounds = 5;
+  int settleTime;
+  int Timeout;
+
+  float laiwValue = 20;
+  float raiwValue = 15;
+  float saiwValue = 15;
+
+
   int port;
   float gearRatio;
   float circumference;
@@ -54,7 +63,7 @@ class movement {
   
   
   public:
-      movement(motor_group left, motor_group right, int inertialport, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, int timeout, int settletime, float settlebounds, float aiwvalue) {
+      movement(motor_group left, motor_group right, int inertialport, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, int timeout, int settletime) {
         leftside = left;
         rightside = right;
         port = inertialport;
@@ -72,6 +81,9 @@ class movement {
         skP = skp;
         skI = ski;
         skD = skd;
+
+        settleTime = settletime;
+        Timeout = timeout;
       }
   
       void move_distance(float distance, float desired_heading) {
@@ -79,6 +91,9 @@ class movement {
         float currentavgPosition = ((leftside.position(deg) + rightside.position(deg))/2);
         
         float heading = reduce_0_to_360(rotationalSensor.rotation());
-        pid lateral = pid(lkP, lkI, lkD, 20, 1000, 100, 10);
+        pid lateral = pid(lkP, lkI, lkD, laiwValue, Timeout, settleTime, lsettleBounds);
+        pid rotational = pid(rkP, rkI, rkD, raiwValue, Timeout, settleTime, rsettleBounds);
+        
+         
       }
 };
