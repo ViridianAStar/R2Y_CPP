@@ -20,7 +20,6 @@ motor blMotor11 = motor(PORT11, ratio6_1, false);
 motor trMotor10 = motor(PORT10, ratio6_1, true);
 motor brMotor20 = motor(PORT20, ratio6_1, true);
 // Global Motor Definitions End
-
 // Define Motor Groups Start
 motor_group leftMotors = motor_group(tlMotor01, blMotor11);
 motor_group rightMotors = motor_group(trMotor10, brMotor20);
@@ -71,7 +70,7 @@ bool activePID = false;
 bool completedPID = false;
 // Swing and PID Activity Tracking Values End
 
-movement driveControl = movement(leftMotors, rightMotors, 14, gearRatio, float(3.25), float(.5), float(0.005), float(0.7), float(0.8), float(0.008), float(0.5), float(0.75), float(0.0075), float(0.5), 1000, 150, float(10), float(9), float(10.7));
+movement driveControl = movement(leftMotors, rightMotors, gearRatio, float(3.25), float(.5), float(0.005), float(0.7), float(0.8), float(0.008), float(0.5), float(0.75), float(0.0075), float(0.5), 1000, 150, float(10), float(9), float(10.7));
 
 // Global Variables End 
 
@@ -89,9 +88,34 @@ void prepSys() {
    }
 }
 
+void square() {
+   driveControl.move_distance(20, 0);
+   driveControl.swing_towards_angle_right(90);
+   driveControl.move_distance(20, 90);
+   driveControl.swing_towards_angle_right(180);
+   driveControl.move_distance(20, 180);
+   driveControl.swing_towards_angle_right(270);
+   driveControl.move_distance(20, 270);
+   driveControl.swing_towards_angle_right(0);
+}
+
+void brakemode(brakeType mode) {
+   leftMotors.setStopping(brake);
+   rightMotors.setStopping(brake);
+}
+
+void userDrive() {
+   leftMotors.spin(forward, ((driver.Axis2.value() + driver.Axis3.value())/10), volt);
+   rightMotors.spin(forward, ((driver.Axis2.value() - driver.Axis3.value())/10), volt);
+}
+
 int main() {
    prepSys();
-   driveControl.move_distance(20, 0);
+   //square();
+
+   /*while (1) {
+      userDrive();
+   }*/
    
 }
 

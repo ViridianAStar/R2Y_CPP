@@ -31,13 +31,11 @@ class movement {
   float smv;
   float lmv;
 
-
-  int port;
+  vex::inertial rotationalSensor = vex::inertial( vex::PORT14 );
   float gearRatio;
   float circumference;
   motor_group leftside;
   motor_group rightside;
-  inertial rotationalSensor = inertial(port);
   
   // Functions borrowed from JAR-Template Start
   float reduce_0_to_360(float angle) {
@@ -67,10 +65,9 @@ class movement {
   
   
   public:
-      movement(motor_group left, motor_group right, int inertialport, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, int timeout, int settletime, float TMV, float SMV, float LMV) {
+      movement(motor_group left, motor_group right, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, int timeout, int settletime, float TMV, float SMV, float LMV) {
         leftside = left;
         rightside = right;
-        port = inertialport;
         circumference = M_PI * wheeldiameter;
         gearRatio = gearratio;
 
@@ -104,6 +101,7 @@ class movement {
         
         while (lateral.active() == true) {
           avgPositon = ((leftside.position(deg) + rightside.position(deg))/2);
+          heading = reduce_0_to_360(rotationalSensor.rotation());
           float lateralerror = (degreesWanted + initialavgPosition) - avgPositon;
           float headingerror = reduce_negative_180_to_180(desired_heading - heading);
 
@@ -123,7 +121,7 @@ class movement {
         pid rotational = pid(rkP, rkI, rkD, raiwValue, Timeout, settleTime, rsettleBounds, tmv);
 
         while (rotational.active() == true) {
-
+          heading = reduce_0_to_360(rotationalSensor.rotation());
           float rotationalerror = reduce_negative_180_to_180(angle - heading);
 
           leftside.spin(forward, rotational.calcPID(rotationalerror), volt);
@@ -132,6 +130,49 @@ class movement {
           task::sleep(10);
         }
 
+        leftside.stop(hold);
+        rightside.stop(hold);
+      }
+
+      void swing_towards_angle_left(float angle) {
+        float heading = reduce_0_to_360(rotationalSensor.rotation());
+
+        pid swing = pid(skP, skI, skD, saiwValue, Timeout, settleTime, ssettleBounds, smv);
+        while (swing.active() == true) {
+
+          heading = reduce_0_to_360(rotationalSensor.rotation());
+          float swingerror = reduce_negative_180_to_180(angle - heading);
+
+          float power = swing.calcPID(swingerror);
+
+          leftside.spin(forward, power, volt);
+
+          rightside.stop(hold);
+
+          task::sleep(10);
+        }
+
+        leftside.stop(hold);
+        rightside.stop(hold);
+      }
+
+       void swing_towards_angle_right(float angle) {
+        float heading = reduce_0_to_360(/*rotationalSensor.rotation()*/ 10);
+
+        pid swing = pid(skP, skI, skD, saiwValue, Timeout, settleTime, ssettleBounds, smv);
+        while (swing.active() == true) {
+        heading = reduce_0_to_360(rotationalSensor.rotation());
+          float swingerror = reduce_negative_180_to_180(angle - heading);
+
+          float power = swing.calcPID(swingerror);
+
+          rightside.spin(forward, power, volt);
+
+          leftside.stop(hold);
+
+          task::sleep(10);
+        }
+        
         leftside.stop(hold);
         rightside.stop(hold);
       }
