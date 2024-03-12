@@ -71,20 +71,9 @@ bool activePID = false;
 bool completedPID = false;
 // Swing and PID Activity Tracking Values End
 
-movement driveControl = movement(leftMotors, rightMotors, 14, gearRatio, 3.25, .5, 0.005, 0.7, 0.8, 0.008, 0.5, 0.75, 0.0075, 0.5, 1000, 150);
+movement driveControl = movement(leftMotors, rightMotors, 14, gearRatio, float(3.25), float(.5), float(0.005), float(0.7), float(0.8), float(0.008), float(0.5), float(0.75), float(0.0075), float(0.5), 1000, 150, float(10), float(9), float(10.7));
 
 // Global Variables End 
-
-// Drive Control Start
-// distance should be in inches but if it is not you can always add a modifier angle is in degrees by default
-
-
-// true for left false for right
-void point_to_angle(float angle) {
-
-}
-
-// Drive Control End
 
 void prepSys() {
    // Preamble that tells the robot it is where it should be to start
@@ -102,6 +91,7 @@ void prepSys() {
 
 int main() {
    prepSys();
+   driveControl.move_distance(20, 0);
    
 }
 
