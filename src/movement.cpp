@@ -3,7 +3,7 @@
 
 using namespace vex;
 
-class movement {
+/*class movement {
 
   float lkP;
   float lkI;
@@ -157,7 +157,7 @@ class movement {
       }
 
        void swing_towards_angle_right(float angle) {
-        float heading = reduce_0_to_360(/*rotationalSensor.rotation()*/ 10);
+        float heading = reduce_0_to_360();
 
         pid swing = pid(skP, skI, skD, saiwValue, Timeout, settleTime, ssettleBounds, smv);
         while (swing.active() == true) {
@@ -176,4 +176,4 @@ class movement {
         leftside.stop(hold);
         rightside.stop(hold);
       }
-};
+};*/
