@@ -2,7 +2,7 @@
 
 using namespace vex;
 
-/*class pid {
+class pid {
     int Timeout;
         
     int settleTime;
@@ -113,4 +113,4 @@ using namespace vex;
 
             return true;
         }
-};*/
+};

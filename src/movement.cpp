@@ -2,43 +2,9 @@
 #include "pid.cpp"
 
 using namespace vex;
-
-/*class movement {
-
-  float lkP;
-  float lkI;
-  float lkD;
-        
-  float rkP;
-  float rkI;
-  float rkD;
-        
-  float skP;
-  float skI;
-  float skD;
-
-  float lsettleBounds = 5;
-  float rsettleBounds = 5;
-  float ssettleBounds = 5;
-  int settleTime;
-  int Timeout;
-
-  float laiwValue = 20;
-  float raiwValue = 15;
-  float saiwValue = 15;
-
-  float tmv;
-  float smv;
-  float lmv;
-
-  vex::inertial rotationalSensor = vex::inertial( vex::PORT14 );
-  float gearRatio;
-  float circumference;
-  motor_group leftside;
-  motor_group rightside;
   
   // Functions borrowed from JAR-Template Start
-  float reduce_0_to_360(float angle) {
+  float movement::reduce_0_to_360(float angle) {
     while(!(angle >= 0 && angle < 360)) {
       if( angle < 0 ) { angle += 360; }
       if(angle >= 360) { angle -= 360; }
@@ -46,7 +12,7 @@ using namespace vex;
     return(angle);
   }
   
-  float reduce_negative_180_to_180(float angle) {
+  float movement::reduce_negative_180_to_180(float angle) {
     while(!(angle >= -180 && angle < 180)) {
       if( angle < -180 ) { angle += 360; }
       if(angle >= 180) { angle -= 360; }
@@ -54,7 +20,7 @@ using namespace vex;
     return(angle);
   }
   
-  float reduce_negative_90_to_90(float angle) {
+  float movement::reduce_negative_90_to_90(float angle) {
     while(!(angle >= -90 && angle < 90)) {
       if( angle < -90 ) { angle += 180; }
       if(angle >= 90) { angle -= 180; }
@@ -63,35 +29,28 @@ using namespace vex;
   }
   // Functions borrowed from JAR-Template End
   
+    movement::movement(motor_group left, motor_group right, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, int timeout, int settletime, float TMV, float SMV, float LMV) :
+        leftside(left),
+        rightside(right),
+        gearRatio(gearratio),
+        circumference(M_PI * wheeldiameter),
+        lkP(lkp),
+        lkI(lki),
+        lkD(lkd),
+        rkP(rkp),
+        rkI(rki),
+        rkD(rkd),
+        skP(skp),
+        skI(ski),
+        skD(skd),
+        settleTime(settletime),
+        Timeout(timeout),
+        tmv(TMV),
+        lmv(LMV),
+        smv(SMV)
+      {};
   
-  public:
-      movement(motor_group left, motor_group right, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, int timeout, int settletime, float TMV, float SMV, float LMV) {
-        leftside = left;
-        rightside = right;
-        circumference = M_PI * wheeldiameter;
-        gearRatio = gearratio;
-
-        lkP = lkp;
-        lkI = lki;
-        lkD = lkd;
-
-        rkP = rkp;
-        rkI = rki;
-        rkD = rkd;
-
-        skP = skp;
-        skI = ski;
-        skD = skd;
-
-        settleTime = settletime;
-        Timeout = timeout;
-
-        tmv = TMV;
-        lmv = LMV;
-        smv = SMV;
-      }
-  
-      void move_distance(float distance, float desired_heading) {
+      void movement::move_distance(float distance, float desired_heading) {
         float degreesWanted = (((distance*360)*gearRatio))/circumference;
         float initialavgPosition = ((leftside.position(deg) + rightside.position(deg))/2);
         float avgPositon = initialavgPosition;
@@ -115,7 +74,7 @@ using namespace vex;
         rightside.stop(hold);
       }
 
-      void point_at_angle(float angle) {
+      void movement::point_at_angle(float angle) {
         float heading = reduce_0_to_360(rotationalSensor.rotation());
 
         pid rotational = pid(rkP, rkI, rkD, raiwValue, Timeout, settleTime, rsettleBounds, tmv);
@@ -134,8 +93,10 @@ using namespace vex;
         rightside.stop(hold);
       }
 
-      void swing_towards_angle_left(float angle) {
+      void movement::swing_towards_angle_left(float angle) {
         float heading = reduce_0_to_360(rotationalSensor.rotation());
+
+        float retpos = leftside.position(deg);
 
         pid swing = pid(skP, skI, skD, saiwValue, Timeout, settleTime, ssettleBounds, smv);
         while (swing.active() == true) {
@@ -154,10 +115,13 @@ using namespace vex;
 
         leftside.stop(hold);
         rightside.stop(hold);
+        leftside.setPosition(retpos, deg);
       }
 
-       void swing_towards_angle_right(float angle) {
-        float heading = reduce_0_to_360();
+       void movement::swing_towards_angle_right(float angle) {
+        float heading = reduce_0_to_360(rotationalSensor.rotation());
+
+        float retpos = rightside.position(deg);
 
         pid swing = pid(skP, skI, skD, saiwValue, Timeout, settleTime, ssettleBounds, smv);
         while (swing.active() == true) {
@@ -175,5 +139,6 @@ using namespace vex;
         
         leftside.stop(hold);
         rightside.stop(hold);
+
+        rightside.setPosition(retpos, deg);
       }
-};*/

@@ -6,6 +6,8 @@
 #include "v5.h"
 #include "v5_vcs.h"
 
+#include "movement.h"
+
 #define waitUntil(condition)                                                   \
   do {                                                                         \
     wait(5, msec);                                                             \
@@ -13,3 +15,7 @@
 
 #define repeat(iterations)                                                     \
   for (int iterator = 0; iterator < iterations; iterator++)
+
+
+using namespace vex;
+extern inertial rotationalSensor;
