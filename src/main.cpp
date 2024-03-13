@@ -37,45 +37,35 @@ float desiredAngle = 0.0;
 float desiredswingAngle = 0.0;
 float wheelDiameter = 3.25;
 float gearRatio = .6;
-float rotationScale = 360;
-float wheelCircumference = M_PI * wheelDiameter;
-int timerunning = 0;
-int timeout = 1250;
-int timetosettle = 100;
-int timeinactive = 0;
 
 
-// Antiintegral Wind-Up Values Start
-float lateralI = 15;
-float turnI = 31;
-float swingI = 2;
-// Antiintegral Wind-Up Values End
-
-// Tolerance Values Start
-float toleranceLateral = 0.5;
-float toleranceTurn = 0.5;
-float toleranceSwing = 0.5;
-// Tolerance Values End
-
-// Voltage Limiters Start
-float lateralMax = 12.7;
-float turnMax = 12.7;
-float swingMax = 12.7;
-float lateralMin = .7;
-float turnMin = .2;
-float swingMin = .7;
-// Voltage Limiters End
-
-// Swing and PID Activity Tracking Values Start
-bool activePID = false;
-bool completedPID = false;
-// Swing and PID Activity Tracking Values End
-
-movement driveControl = movement(leftMotors, rightMotors, gearRatio, 3.25, (.5), (0.005), (0.7), (0.8), (0.008), (0.5), (3.8), (0.055), (.75), 1000, 150, (10), (9), (10.7));
-
-//movement driveControl = movement(leftMotors, rightMotors, gearRatio, float(3.25), float(.5), float(0.005), float(0.7), float(0.8), float(0.008), float(0.5), float(0.75), float(0.0075), float(0.5), 1000, 150, float(10), float(9), float(10.7));
 
 // Global Variables End 
+
+// Drive Control Initialization Start
+movement driveControl = movement(
+  // pass this your left motor and right motor groups
+  leftMotors,
+  rightMotors, 
+  //pass this your gear ratio and wheel diameters
+  gearRatio, 
+  wheelDiameter, 
+  // pass this your lateral PID tuning values
+  1.5, 0.005, 0.7,
+
+  // pass this your rotational PID tuning values
+  0.8, 0.008, 0.5,
+
+  // pass this your swing PID tuning values
+  3.8, 0.055, .75,
+
+  // pass this your timeout values (timeout, settle time)
+  1000, 150, 
+
+  // pass this your voltage max/min values (lateral, rotational, swing)
+  11, 9, 10
+  );
+// Drive Control Initialization Start
 
 void prepSys() {
    // Preamble that tells the robot it is where it should be to start
@@ -99,23 +89,23 @@ void printvalues(int tval) {
 }
 
 void square() {
-   printvalues(500);
-   driveControl.move_distance(100, 0);
-   printvalues(500);
+   printvalues(10000);
+   driveControl.move_distance(100);
+   printvalues(10000);
    driveControl.swing_towards_angle_right(90);
-   printvalues(500);
-   driveControl.move_distance(100, 90);
-   printvalues(500);
+   printvalues(10000);
+   driveControl.move_distance(100);
+   printvalues(10000);
    driveControl.swing_towards_angle_right(180);
-   printvalues(500);
-   driveControl.move_distance(100, 180);
-   printvalues(500);
-   driveControl.swing_towards_angle_right(-90);
-   printvalues(500);
-   driveControl.move_distance(100, -90);
-   printvalues(500);
+   printvalues(10000);
+   driveControl.move_distance(100);
+   printvalues(10000);
+   driveControl.swing_towards_angle_right(270);
+   printvalues(10000);
+   driveControl.move_distance(100);
+   printvalues(10000);
    driveControl.swing_towards_angle_right(0);
-   printvalues(500);
+   printvalues(10000);
 }
 
 void brakemode(brakeType mode) {
@@ -131,6 +121,14 @@ void userDrive() {
 int main() {
    prepSys();
    square();
+   /*driveControl.swing_towards_angle_left(90);
+   printvalues(10000);
+   driveControl.swing_towards_angle_left(180);
+   printvalues(10000);
+   driveControl.swing_towards_angle_left(270);
+   printvalues(10000);
+   driveControl.swing_towards_angle_left(0);
+   printvalues(10000);*/
    /*while (1) {
       userDrive();
    }*/

@@ -50,11 +50,12 @@ using namespace vex;
         smv(SMV)
       {};
   
-      void movement::move_distance(float distance, float desired_heading) {
+      void movement::move_distance(float distance) {
         float degreesWanted = (((distance*360)*gearRatio))/circumference;
         float initialavgPosition = ((leftside.position(deg) + rightside.position(deg))/2);
         float avgPositon = initialavgPosition;
         float heading = reduce_0_to_360(rotationalSensor.rotation());
+        float desired_heading = heading;
         pid lateral = pid(lkP, lkI, lkD, laiwValue, Timeout, settleTime, lsettleBounds, lmv);
         pid rotational = pid(rkP, rkI, rkD, raiwValue, Timeout, settleTime, rsettleBounds, tmv);
         
@@ -141,4 +142,36 @@ using namespace vex;
         rightside.stop(hold);
 
         rightside.setPosition(retpos, deg);
+      }
+
+      void movement::set_lateral_tuning(float p, float i, float d) {
+        lkP = p;
+        lkI = i;
+        lkD = d;
+      }
+
+      void movement::set_rotational_tuning(float p, float i, float d) {
+        rkP = p;
+        rkI = i;
+        rkD = d;
+      }
+      
+      void movement::set_swing_tuning(float p, float i, float d) {
+        skP = p;
+        skI = i;
+        skD = d;
+      }
+      
+      void movement::set_timeout(int t) {
+        Timeout = t;
+      }
+      
+      void movement::set_settle_time(int t) {
+        settleTime = t;
+      }
+      
+      void movement::set_voltage_limits(float LMV, float TMV, float SMV) {
+        lmv = LMV;
+        tmv = TMV;
+        smv = SMV;
       }
