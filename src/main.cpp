@@ -64,7 +64,7 @@ movement driveControl = movement(
   5, 2, 2,
 
   // pass this your anti integral windup bounds (lateral, rotational, swing)
-  50, 10, 10
+  5, 10, 10
 
   );
 // Drive Control Initialization Start
@@ -207,7 +207,7 @@ int main() {
    brakemode(brake);
    //square();
    //triangle();
-   driveControl.move_distance(12);
+   driveControl.move_distance(48);
    //cardinalswingTest();
    //driveControl.move_distance(12);
    /*while (1) {
