@@ -55,28 +55,45 @@ using namespace vex;
         rsettleBounds(RsettleBounds),
         ssettleBounds(SsettleBounds)
       {};
-  
+
+      // go a distance
       void movement::move_distance(float distance) {
+
+        // first we convert desired linear distance to degrees
         float degreesWanted = (((distance*360)*gearRatio))/circumference;
+        // we record the initial average position of the motors
         float initialavgPosition = ((leftside.position(deg) + rightside.position(deg))/2);
+
+        // your start average position is your initial average position
         float avgPositon = initialavgPosition;
+
+        // record your initial heading
         float heading = reduce_0_to_360(rotationalSensor.rotation());
+        // your desired heading is your initial heading this keeps you on a straight line
         float desired_heading = heading;
+
+        // initialize PIDs
         pid lateral = pid(lkP, lkI, lkD, laiwValue, Timeout, settleTime, lsettleBounds, lmv);
         pid rotational = pid(rkP, rkI, rkD, raiwValue, Timeout, settleTime, rsettleBounds, tmv);
         
         while (lateral.active() == true) {
+          // while youre lateral pid is active calculate your average position and heading
           avgPositon = ((leftside.position(deg) + rightside.position(deg))/2);
           heading = reduce_0_to_360(rotationalSensor.rotation());
+
+          // calculate your errors to give to PID (we say that our desired position is our initial average positon + our desired distance)
           float lateralerror = (degreesWanted + initialavgPosition) - avgPositon;
           float headingerror = reduce_negative_180_to_180(desired_heading - heading);
 
+          // spin our motors with the desired amounts of power.
           leftside.spin(forward, (lateral.calcPID(lateralerror) + rotational.calcPID(headingerror)), volt);
           rightside.spin(forward, (lateral.calcPID(lateralerror) - rotational.calcPID(headingerror)), volt);
 
+          // stop doing things for 10 milliseconds after every loop
           task::sleep(10);
         }
 
+        // when its not active, stop.
         leftside.stop(hold);
         rightside.stop(hold);
       }
