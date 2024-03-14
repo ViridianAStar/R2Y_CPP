@@ -98,51 +98,76 @@ using namespace vex;
         rightside.stop(hold);
       }
 
+      // point front towards a given angle.
       void movement::point_at_angle(float angle) {
+        // first we get our intial heading
         float heading = reduce_0_to_360(rotationalSensor.rotation());
 
+        // we initialize our rotational PID.
         pid rotational = pid(rkP, rkI, rkD, raiwValue, Timeout, settleTime, rsettleBounds, tmv);
 
+        // while we aren't within the accepted values for our desired angle
         while (rotational.active() == true) {
+          // our current heading
           heading = reduce_0_to_360(rotationalSensor.rotation());
+
+          // how far we are from our desired heading
           float rotationalerror = reduce_negative_180_to_180(angle - heading);
 
+          // rotate both sets of motors in opposite directions.
           leftside.spin(forward, rotational.calcPID(rotationalerror), volt);
           rightside.spin(forward, -rotational.calcPID(rotationalerror), volt);
 
+          // do nothing for 10 milliseconds
           task::sleep(10);
         }
 
+        // when we are complete stop.
         leftside.stop(hold);
         rightside.stop(hold);
       }
 
+      // swing towards an angle using the left side
       void movement::swing_towards_angle_left(float angle) {
+        // get your initial heading
         float heading = reduce_0_to_360(rotationalSensor.rotation());
 
+        // for the side that is moving, get your intial position to reset too. This is for linear accuracy if you move forwards later.
         float retpos = leftside.position(deg);
 
+        // initialize your swing PID
         pid swing = pid(skP, skI, skD, saiwValue, Timeout, settleTime, ssettleBounds, smv);
-        while (swing.active() == true) {
 
+        // while it is active:
+        while (swing.active() == true) {
+          
+          // get your current heading
           heading = reduce_0_to_360(rotationalSensor.rotation());
+
+          // calculate your error
           float swingerror = reduce_negative_180_to_180(angle - heading);
 
+          // calculate your power
           float power = swing.calcPID(swingerror);
 
+          // move ONLY THE DESIRED SIDE towards that angle.
           leftside.spin(forward, power, volt);
 
+          // stop the non-desired side
           rightside.stop(hold);
 
+          // do nothing for 10 milliseconds
           task::sleep(10);
         }
         
+        // when complete stop all motors and return the side that moved to its original encoder value.
         leftside.stop(hold);
         rightside.stop(hold);
         leftside.setPosition(retpos, deg);
       }
 
-       void movement::swing_towards_angle_right(float angle) {
+      // swing towards an angle using the right side
+      void movement::swing_towards_angle_right(float angle) {
         float heading = reduce_0_to_360(rotationalSensor.rotation());
 
         float retpos = rightside.position(deg);

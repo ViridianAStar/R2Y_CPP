@@ -46,7 +46,7 @@ movement driveControl = movement(
   gearRatio, 
   wheelDiameter, 
   // pass this your lateral PID tuning values
-  1.5, 0.0023, 0.7,  // kP, kI, kD
+  1.45, 0.0023, 0.7,  // kP, kI, kD
 
   // pass this your rotational PID tuning values
   0.8, 0.008, 0.5, // kP, kI, kD
@@ -196,8 +196,8 @@ void totalswingTest() {}
 int main() {
    prepSys();
    brakemode(hold);
-   square();
-   //swingTest();
+   //square();
+   cardinalswingTest();
    //driveControl.move_distance(12);
    /*while (1) {
       userDrive();
