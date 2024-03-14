@@ -113,7 +113,7 @@ using namespace vex;
 
           task::sleep(10);
         }
-
+        
         leftside.stop(hold);
         rightside.stop(hold);
         leftside.setPosition(retpos, deg);
@@ -126,7 +126,8 @@ using namespace vex;
 
         pid swing = pid(skP, skI, skD, saiwValue, Timeout, settleTime, ssettleBounds, smv);
         while (swing.active() == true) {
-        heading = reduce_0_to_360(rotationalSensor.rotation());
+
+          heading = reduce_0_to_360(rotationalSensor.rotation());
           float swingerror = reduce_negative_180_to_180(angle - heading);
 
           float power = swing.calcPID(swingerror);
@@ -140,7 +141,6 @@ using namespace vex;
         
         leftside.stop(hold);
         rightside.stop(hold);
-
         rightside.setPosition(retpos, deg);
       }
 
