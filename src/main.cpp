@@ -110,14 +110,23 @@ void square() {
    printvalues(1000);
 }
 
+void triangle() {
+   driveControl.move_distance(24);
+   driveControl.swing_towards_angle_left(120);
+   driveControl.move_distance(24);
+   driveControl.swing_towards_angle_left(240);
+   driveControl.move_distance(24);
+   driveControl.swing_towards_angle_left(0);
+}
+
 void brakemode(brakeType mode) {
    leftMotors.setStopping(mode);
    rightMotors.setStopping(mode);
 }
 
 void userDrive() {
-   leftMotors.spin(forward, ((driver.Axis2.value() + driver.Axis3.value())/10), volt);
-   rightMotors.spin(forward, ((driver.Axis2.value() - driver.Axis3.value())/10), volt);
+   leftMotors.spin(forward, ((driver.Axis2.value() + driver.Axis4.value())/10), volt);
+   rightMotors.spin(forward, ((driver.Axis2.value() - driver.Axis4.value())/10), volt);
 }
 
 void cardinalswingTest() {
@@ -195,12 +204,16 @@ void totalswingTest() {}
 
 int main() {
    prepSys();
-   brakemode(hold);
+   brakemode(brake);
    //square();
-   cardinalswingTest();
+   //triangle();
+   driveControl.move_distance(12);
+   //cardinalswingTest();
    //driveControl.move_distance(12);
    /*while (1) {
       userDrive();
+      //driver.ButtonA.pressed(cardinalswingTest);
+      task::sleep(5);
    }*/
    
 }

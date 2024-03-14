@@ -60,7 +60,7 @@ using namespace vex;
       void movement::move_distance(float distance) {
 
         // first we convert desired linear distance to degrees
-        float degreesWanted = (((distance*360)*gearRatio))/circumference;
+        float degreesWanted = (distance*gearRatio)/(360*circumference);
         // we record the initial average position of the motors
         float initialavgPosition = ((leftside.position(deg) + rightside.position(deg))/2);
 
