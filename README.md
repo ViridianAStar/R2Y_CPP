@@ -8,6 +8,7 @@ You may wish to tune specific values for your system. 3 functions for reducing h
 ## Overview of PID
 
 > Q: What is PID?
+
 > A: PID is a system that accounts for your error or distance from a desired heading or position.
 
 Here is the actual code for PID used in the program: 
