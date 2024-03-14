@@ -114,14 +114,17 @@ class pid {
         }
 
         bool active() {
+            // if your timeout is reached and not 0 as 0 would be infinite you are complete
             if (Timeout != 0 && runningtime >= Timeout) {
                 return false;
             }
-
+            
+            // if your settled time is equal to or greater than your settle time you are complete
             if (settledtime >= settleTime) {
                 return false;
             }
 
+            // otherwise you are not.
             return true;
         }
 };

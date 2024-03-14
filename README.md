@@ -2,7 +2,7 @@
 
 ## Background
 
-You may wish to tune specific values for your system. 3 functions for reducing headings where borrowed from the [JAR-Template](https://github.com/JacksonAreaRobotics/JAR-Template)
+You may wish to tune specific values for your system. 3 functions for reducing headings where borrowed from the [JAR-Template](https://github.com/JacksonAreaRobotics/JAR-Template). This was made for VEX V5 system using Microsoft Visual Studio Code and the VEX V5 extension.
 
 
 ## Overview of PID
@@ -52,3 +52,40 @@ Here is the actual code for PID used in the program:
             return calculateoutput(rawvalue);
         }
 ```
+
+> Q: how does the PID know when it is done?
+
+> A: It detects when it is within bounds using built in motor encoders and the inertial sensors rotation. When it is within bounds it waits for a while to make sure it is staying within bounds.
+
+Bounds Detection Code: 
+
+```cpp
+        bool active() {
+            // if your timeout is reached and not 0 as 0 would be infinite you are complete
+            if (Timeout != 0 && runningtime >= Timeout) {
+                return false;
+            }
+            
+            // if your settled time is equal to or greater than your settle time you are complete
+            if (settledtime >= settleTime) {
+                return false;
+            }
+
+            // otherwise you are not.
+            return true;
+        }
+```
+
+these are the 2 main and basic functions of the PID system.
+
+## Overview of Movement / Motion
+
+> Q: Is this odometery?
+
+> A: No, however this does allow the robot to move specified distances and rotate to specified angles.
+
+> Q: Are there plans for odometery in the future?
+
+> A: Yes! There is a plan to encorporate odometery in the future.
+
+### THE DOCUMENTATION FOR THIS IS NOT YET COMPLETE
