@@ -20,6 +20,7 @@ motor blMotor11 = motor(PORT11, ratio6_1, false);
 motor trMotor10 = motor(PORT10, ratio6_1, true);
 motor brMotor20 = motor(PORT20, ratio6_1, true);
 // Global Motor Definitions End
+
 // Define Motor Groups Start
 motor_group leftMotors = motor_group(tlMotor01, blMotor11);
 motor_group rightMotors = motor_group(trMotor10, brMotor20);
@@ -32,14 +33,8 @@ controller driver = controller(primary);
 // Define Other Devices End
 
 // Global Variables Start
-float desiredDistance = 0.0;
-float desiredAngle = 0.0;
-float desiredswingAngle = 0.0;
-float wheelDiameter = 3.25;
-float gearRatio = .6;
-
-
-
+float wheelDiameter = 2.75;
+float gearRatio = 1.0;
 // Global Variables End 
 
 // Drive Control Initialization Start
@@ -51,19 +46,26 @@ movement driveControl = movement(
   gearRatio, 
   wheelDiameter, 
   // pass this your lateral PID tuning values
-  1.5, 0.005, 0.7,
+  1.5, 0.0023, 0.7,  // kP, kI, kD
 
   // pass this your rotational PID tuning values
-  0.8, 0.008, 0.5,
+  0.8, 0.008, 0.5, // kP, kI, kD
 
   // pass this your swing PID tuning values
-  3.8, 0.055, .75,
+  3.8, 0.055, .75, // kP, kI, kD
 
   // pass this your timeout values (timeout, settle time)
-  1000, 150, 
+  2000, 200, 
 
   // pass this your voltage max/min values (lateral, rotational, swing)
-  11, 9, 10
+  10.5, 9, 9,
+
+  // pass this your settle bounds (lateral, rotational, swing)
+  5, 2, 2,
+
+  // pass this your anti integral windup bounds (lateral, rotational, swing)
+  50, 10, 10
+
   );
 // Drive Control Initialization Start
 
@@ -89,28 +91,28 @@ void printvalues(int tval) {
 }
 
 void square() {
-   printvalues(10000);
-   driveControl.move_distance(100);
-   printvalues(10000);
-   driveControl.swing_towards_angle_right(90);
-   printvalues(10000);
-   driveControl.move_distance(100);
-   printvalues(10000);
-   driveControl.swing_towards_angle_right(180);
-   printvalues(10000);
-   driveControl.move_distance(100);
-   printvalues(10000);
-   driveControl.swing_towards_angle_right(270);
-   printvalues(10000);
-   driveControl.move_distance(100);
-   printvalues(10000);
-   driveControl.swing_towards_angle_right(0);
-   printvalues(10000);
+   printvalues(1000);
+   driveControl.move_distance(24);
+   printvalues(1000);
+   driveControl.swing_towards_angle_left(90);
+   printvalues(1000);
+   driveControl.move_distance(24);
+   printvalues(1000);
+   driveControl.swing_towards_angle_left(180);
+   printvalues(1000);
+   driveControl.move_distance(24);
+   printvalues(1000);
+   driveControl.swing_towards_angle_left(270);
+   printvalues(1000);
+   driveControl.move_distance(24);
+   printvalues(1000);
+   driveControl.swing_towards_angle_left(0);
+   printvalues(1000);
 }
 
 void brakemode(brakeType mode) {
-   leftMotors.setStopping(brake);
-   rightMotors.setStopping(brake);
+   leftMotors.setStopping(mode);
+   rightMotors.setStopping(mode);
 }
 
 void userDrive() {
@@ -118,17 +120,85 @@ void userDrive() {
    rightMotors.spin(forward, ((driver.Axis2.value() - driver.Axis3.value())/10), volt);
 }
 
+void cardinalswingTest() {
+   Brain.Screen.setPenColor(green);
+   driveControl.swing_towards_angle_left(90);
+
+   Brain.Screen.setCursor(6, 6);
+   Brain.Screen.print("left desired 90 / -270, actual: ");
+   Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
+   wait(2, seconds);
+   Brain.Screen.clearScreen();
+
+   driveControl.swing_towards_angle_left(180);
+
+   Brain.Screen.setCursor(6, 6);
+   Brain.Screen.print("left desired 180, actual: ");
+   Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
+   wait(2, seconds);
+   Brain.Screen.clearScreen();
+
+   driveControl.swing_towards_angle_left(270);
+
+   Brain.Screen.setCursor(6, 6);
+   Brain.Screen.print("left desired 270 / -90, actual: ");
+   Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
+   wait(2, seconds);
+   Brain.Screen.clearScreen();
+
+   driveControl.swing_towards_angle_left(0);
+
+   Brain.Screen.setCursor(6, 6);
+   Brain.Screen.print("left desired 0 / 360, actual: ");
+   Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
+   wait(2, seconds);
+   Brain.Screen.clearScreen();
+
+   driveControl.move_distance(24);
+
+   driveControl.swing_towards_angle_right(270);
+
+   Brain.Screen.setCursor(6, 6);
+   Brain.Screen.print("left desired -90 / 270, actual: ");
+   Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
+   wait(2, seconds);
+   Brain.Screen.clearScreen();
+
+   driveControl.swing_towards_angle_right(180);
+
+   Brain.Screen.setCursor(6, 6);
+   Brain.Screen.print("left desired 180, actual: ");
+   Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
+   wait(2, seconds);
+   Brain.Screen.clearScreen();
+
+   driveControl.swing_towards_angle_right(90);
+
+   Brain.Screen.setCursor(6, 6);
+   Brain.Screen.print("left desired -270 / 90, actual: ");
+   Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
+   wait(2, seconds);
+   Brain.Screen.clearScreen();
+
+   driveControl.swing_towards_angle_right(0);
+
+   Brain.Screen.setCursor(6, 6);
+   Brain.Screen.print("left desired 0 / 360, actual: ");
+   Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
+   wait(2, seconds);
+   Brain.Screen.clearScreen();
+}
+
+void subcardinalswingTest() {}
+
+void totalswingTest() {}
+
 int main() {
    prepSys();
+   brakemode(hold);
    square();
-   /*driveControl.swing_towards_angle_left(90);
-   printvalues(10000);
-   driveControl.swing_towards_angle_left(180);
-   printvalues(10000);
-   driveControl.swing_towards_angle_left(270);
-   printvalues(10000);
-   driveControl.swing_towards_angle_left(0);
-   printvalues(10000);*/
+   //swingTest();
+   //driveControl.move_distance(12);
    /*while (1) {
       userDrive();
    }*/

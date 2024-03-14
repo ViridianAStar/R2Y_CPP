@@ -29,11 +29,9 @@ using namespace vex;
   }
   // Functions borrowed from JAR-Template End
   
-    movement::movement(motor_group left, motor_group right, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, int timeout, int settletime, float TMV, float SMV, float LMV) :
+    movement::movement(motor_group left, motor_group right, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, int timeout, int settletime, float TMV, float SMV, float LMV, float LaiwValue, float RaiwValue, float SaiwValue, float LsettleBounds, float RsettleBounds, float SsettleBounds) :
         leftside(left),
         rightside(right),
-        gearRatio(gearratio),
-        circumference(M_PI * wheeldiameter),
         lkP(lkp),
         lkI(lki),
         lkD(lkd),
@@ -47,7 +45,15 @@ using namespace vex;
         Timeout(timeout),
         tmv(TMV),
         lmv(LMV),
-        smv(SMV)
+        smv(SMV),
+        gearRatio(gearratio),
+        circumference(M_PI * wheeldiameter),
+        laiwValue(LaiwValue),
+        raiwValue(RaiwValue),
+        saiwValue(SaiwValue),
+        lsettleBounds(LsettleBounds),
+        rsettleBounds(RsettleBounds),
+        ssettleBounds(SsettleBounds)
       {};
   
       void movement::move_distance(float distance) {
@@ -132,7 +138,7 @@ using namespace vex;
 
           float power = swing.calcPID(swingerror);
 
-          rightside.spin(forward, power, volt);
+          rightside.spin(forward, -power, volt);
 
           leftside.stop(hold);
 
