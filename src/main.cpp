@@ -15,10 +15,10 @@ using namespace vex;
 vex::brain       Brain;
 
 // Global Motor Definitions Start
-motor tlMotor01 = motor(PORT1, ratio6_1, false);
-motor blMotor11 = motor(PORT11, ratio6_1, false);
-motor trMotor10 = motor(PORT10, ratio6_1, true);
-motor brMotor20 = motor(PORT20, ratio6_1, true);
+motor tlMotor01 = motor(PORT1, ratio6_1, true);
+motor blMotor11 = motor(PORT11, ratio6_1, true);
+motor trMotor10 = motor(PORT10, ratio6_1, false);
+motor brMotor20 = motor(PORT20, ratio6_1, false);
 // Global Motor Definitions End
 
 // Define Motor Groups Start
@@ -52,19 +52,19 @@ movement driveControl = movement(
   0.8, 0.008, 0.5, // kP, kI, kD
 
   // pass this your swing PID tuning values
-  3.8, 0.055, .75, // kP, kI, kD
+  1.8, 0.0055, .75, // kP, kI, kD
 
   // pass this your timeout values (timeout, settle time)
   2000, 200, 
 
   // pass this your voltage max/min values (lateral, rotational, swing)
-  10.5, 9, 9,
+  11, 9, 9,
 
   // pass this your settle bounds (lateral, rotational, swing)
   5, 2, 2,
 
   // pass this your anti integral windup bounds (lateral, rotational, swing)
-  5, 10, 10
+  41, 10, 10
 
   );
 // Drive Control Initialization Start
@@ -207,8 +207,9 @@ int main() {
    brakemode(brake);
    //square();
    //triangle();
-   driveControl.move_distance(48);
-   //cardinalswingTest();
+   driveControl.move_distance(24);
+   wait(1, seconds);
+   cardinalswingTest();
    //driveControl.move_distance(12);
    /*while (1) {
       userDrive();
