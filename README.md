@@ -95,7 +95,7 @@ these are the 2 main and basic functions of the PID system.
       void movement::move_distance(float distance) {
 
         // first we convert desired linear distance to degrees
-        float degreesWanted = (distance*gearRatio)/(360*circumference);
+        float degreesWanted = ((distance*360)/(circumference*gearRatio));
         // we record the initial average position of the motors
         float initialavgPosition = ((leftside.position(deg) + rightside.position(deg))/2);
 
