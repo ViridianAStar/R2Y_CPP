@@ -61,9 +61,10 @@ using namespace vex;
 
         // first we convert desired linear distance to degrees
         float degreesWanted = ((distance*360)/(circumference*gearRatio));
+        printf("desired %f\n", degreesWanted);
         // we record the initial average position of the motors
         float initialavgPosition = ((leftside.position(deg) + rightside.position(deg))/2);
-
+        printf("init %f\n", initialavgPosition);
         // your start average position is your initial average position
         float avgPositon = initialavgPosition;
 
@@ -83,6 +84,7 @@ using namespace vex;
 
           // calculate your errors to give to PID (we say that our desired position is our initial average positon + our desired distance)
           float lateralerror = (degreesWanted + initialavgPosition) - avgPositon;
+          printf("lerror %f\n", lateralerror);
           float headingerror = reduce_negative_180_to_180(desired_heading - heading);
 
           // spin our motors with the desired amounts of power.

@@ -15,10 +15,10 @@ using namespace vex;
 vex::brain       Brain;
 
 // Global Motor Definitions Start
-motor tlMotor01 = motor(PORT1, ratio6_1, true);
-motor blMotor11 = motor(PORT11, ratio6_1, true);
-motor trMotor10 = motor(PORT10, ratio6_1, false);
-motor brMotor20 = motor(PORT20, ratio6_1, false);
+motor tlMotor01 = motor(PORT1, ratio6_1, false);
+motor blMotor11 = motor(PORT11, ratio6_1, false);
+motor trMotor10 = motor(PORT10, ratio6_1, true);
+motor brMotor20 = motor(PORT20, ratio6_1, true);
 // Global Motor Definitions End
 
 // Define Motor Groups Start
@@ -52,16 +52,16 @@ movement driveControl = movement(
   0.8, 0.008, 0.5, // kP, kI, kD
 
   // pass this your swing PID tuning values
-  1.8, 0.0055, .75, // kP, kI, kD
+  3.8, 0.0055, .075, // kP, kI, kD
 
   // pass this your timeout values (timeout, settle time)
-  2000, 200, 
+  2000, 150, 
 
   // pass this your voltage max/min values (lateral, rotational, swing)
-  11, 9, 9,
+  11, 9, 8,
 
   // pass this your settle bounds (lateral, rotational, swing)
-  5, 2, 2,
+  5, 1, 1,
 
   // pass this your anti integral windup bounds (lateral, rotational, swing)
   41, 10, 10
@@ -202,14 +202,25 @@ void subcardinalswingTest() {}
 
 void totalswingTest() {}
 
+void schmove() {
+   driveControl.move_distance(24);
+}
+
 int main() {
    prepSys();
    brakemode(brake);
-   //square();
-   //triangle();
-   driveControl.move_distance(24);
-   wait(1, seconds);
-   cardinalswingTest();
+   while (1) {
+      prepSys();
+      square();
+      task::sleep(5000);
+      prepSys();
+      triangle();
+      task::sleep(5000);
+   }
+   //schmove();
+   /*wait(1, seconds);
+   driveControl.move_distance(24);*/
+   //cardinalswingTest();
    //driveControl.move_distance(12);
    /*while (1) {
       userDrive();
