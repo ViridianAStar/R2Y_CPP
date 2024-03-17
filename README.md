@@ -218,4 +218,6 @@ these are the 2 main and basic functions of the PID system.
 
 ## Other
 If you find a bug please open an issue on GitHub and we will try and fix it in a timely manner.
-This is licensed under an MIT license
+This is licensed under an MIT license.
+
+## More Coming Soon...
