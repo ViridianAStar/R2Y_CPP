@@ -31,6 +31,7 @@ class movement {
         movement(motor_group left, motor_group right, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, int timeout, int settletime, float LMV, float RMV, float SMV, float LaiwValue, float RaiwValue, float SaiwValue, float LsettleBounds, float RsettleBounds, float SsettleBounds);
         
         void move_distance(float distance);
+        void move_distance_spiral(float distance, float desired_end_angle);
         void point_at_angle(float angle);
         void swing_towards_angle_left(float angle);
         void swing_towards_angle_right(float angle);

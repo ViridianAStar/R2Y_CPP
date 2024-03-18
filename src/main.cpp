@@ -124,9 +124,24 @@ void brakemode(brakeType mode) {
    rightMotors.setStopping(mode);
 }
 
-void userDrive() {
+void right_handed_userDrive() {
    leftMotors.spin(forward, ((driver.Axis2.value() + driver.Axis4.value())/10), volt);
    rightMotors.spin(forward, ((driver.Axis2.value() - driver.Axis4.value())/10), volt);
+}
+
+void single_stick_right_handed_userDrive() {
+   leftMotors.spin(forward, ((driver.Axis2.value() + driver.Axis1.value())/10), volt);
+   rightMotors.spin(forward, ((driver.Axis2.value() - driver.Axis1.value())/10), volt);
+}
+
+void left_handed_userDrive() {
+   leftMotors.spin(forward, ((driver.Axis3.value() + driver.Axis1.value())/10), volt);
+   rightMotors.spin(forward, ((driver.Axis3.value() - driver.Axis1.value())/10), volt);
+}
+
+void single_stick_left_handed_userDrive() {
+   leftMotors.spin(forward, ((driver.Axis3.value() + driver.Axis4.value())/10), volt);
+   rightMotors.spin(forward, ((driver.Axis3.value() - driver.Axis4.value())/10), volt);
 }
 
 void cardinalswingTest() {
@@ -165,10 +180,10 @@ void cardinalswingTest() {
 
    driveControl.move_distance(24);
 
-   driveControl.swing_towards_angle_right(270);
+   driveControl.swing_towards_angle_right(-90);
 
    Brain.Screen.setCursor(6, 6);
-   Brain.Screen.print("left desired -90 / 270, actual: ");
+   Brain.Screen.print("right desired -90 / 270, actual: ");
    Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
    wait(2, seconds);
    Brain.Screen.clearScreen();
@@ -176,15 +191,15 @@ void cardinalswingTest() {
    driveControl.swing_towards_angle_right(180);
 
    Brain.Screen.setCursor(6, 6);
-   Brain.Screen.print("left desired 180, actual: ");
+   Brain.Screen.print("right desired 180, actual: ");
    Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
    wait(2, seconds);
    Brain.Screen.clearScreen();
 
-   driveControl.swing_towards_angle_right(90);
+   driveControl.swing_towards_angle_right(-270);
 
    Brain.Screen.setCursor(6, 6);
-   Brain.Screen.print("left desired -270 / 90, actual: ");
+   Brain.Screen.print("right desired -270 / 90, actual: ");
    Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
    wait(2, seconds);
    Brain.Screen.clearScreen();
@@ -192,23 +207,96 @@ void cardinalswingTest() {
    driveControl.swing_towards_angle_right(0);
 
    Brain.Screen.setCursor(6, 6);
-   Brain.Screen.print("left desired 0 / 360, actual: ");
+   Brain.Screen.print("right desired 0 / 360, actual: ");
    Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
    wait(2, seconds);
    Brain.Screen.clearScreen();
 }
 
-void subcardinalswingTest() {}
+void subcardinalswingTest() {
+   Brain.Screen.setPenColor(green);
+   driveControl.swing_towards_angle_left(45);
 
-void totalswingTest() {}
+   Brain.Screen.setCursor(6, 6);
+   Brain.Screen.print("left desired 45 / -45, actual: ");
+   Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
+   wait(2, seconds);
+   Brain.Screen.clearScreen();
 
-void schmove() {
+   driveControl.swing_towards_angle_left(135);
+
+   Brain.Screen.setCursor(6, 6);
+   Brain.Screen.print("left desired 135, -135, actual: ");
+   Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
+   wait(2, seconds);
+   Brain.Screen.clearScreen();
+
+   driveControl.swing_towards_angle_left(225);
+
+   Brain.Screen.setCursor(6, 6);
+   Brain.Screen.print("left desired 225 / -225, actual: ");
+   Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
+   wait(2, seconds);
+   Brain.Screen.clearScreen();
+
+   driveControl.swing_towards_angle_left(0);
+
+   Brain.Screen.setCursor(6, 6);
+   Brain.Screen.print("left desired 315 / -315, actual: ");
+   Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
+   wait(2, seconds);
+   Brain.Screen.clearScreen();
+
+   driveControl.point_at_angle(0);
+
+   Brain.Screen.setCursor(6, 6);
+   Brain.Screen.print("Rotation Desired 0 / 360, actual: ");
+   Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
+   wait(2, seconds);
+   Brain.Screen.clearScreen();
+
    driveControl.move_distance(24);
+
+   driveControl.swing_towards_angle_right(-45);
+
+   Brain.Screen.setCursor(6, 6);
+   Brain.Screen.print("right desired -45 / 45, actual: ");
+   Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
+   wait(2, seconds);
+   Brain.Screen.clearScreen();
+
+   driveControl.swing_towards_angle_right(-135);
+
+   Brain.Screen.setCursor(6, 6);
+   Brain.Screen.print("right desired -135, 135, actual: ");
+   Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
+   wait(2, seconds);
+   Brain.Screen.clearScreen();
+
+   driveControl.swing_towards_angle_right(-225);
+
+   Brain.Screen.setCursor(6, 6);
+   Brain.Screen.print("right desired -225 / 225, actual: ");
+   Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
+   wait(2, seconds);
+   Brain.Screen.clearScreen();
+
+   driveControl.swing_towards_angle_right(-315);
+
+   Brain.Screen.setCursor(6, 6);
+   Brain.Screen.print("right desired -315 / 315, actual: ");
+   Brain.Screen.print(driveControl.reduce_0_to_360(rotationalSensor.rotation()));
+   wait(2, seconds);
+   Brain.Screen.clearScreen();
 }
 
-int main() {
-   prepSys();
-   brakemode(brake);
+void totalswingTest() {
+   cardinalswingTest();
+   wait(1, seconds);
+   subcardinalswingTest();
+}
+
+void showcase() {
    while (1) {
       prepSys();
       square();
@@ -217,16 +305,22 @@ int main() {
       triangle();
       task::sleep(5000);
    }
-   //schmove();
+}
+
+int main() {
+   prepSys();
+   //brakemode(coast);
+   //driveControl.move_distance(60);
+   //driveControl.swing_towards_angle_right(-90);
+   //driveControl.move_distance_spiral(144, 90);
+   brakemode(brake);
    /*wait(1, seconds);
    driveControl.move_distance(24);*/
    //cardinalswingTest();
    //driveControl.move_distance(12);
-   /*while (1) {
-      userDrive();
-      //driver.ButtonA.pressed(cardinalswingTest);
-      task::sleep(5);
-   }*/
+   while (1) {
+      single_stick_left_handed_userDrive();
+   }
    
 }
 
