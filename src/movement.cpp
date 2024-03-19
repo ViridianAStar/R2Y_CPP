@@ -269,3 +269,28 @@ using namespace vex;
         tmv = TMV;
         smv = SMV;
       }
+
+movement::tankDrive::tankDrive(motor_group left, motor_group right) : 
+  TD_leftside(left),
+  TD_rightside(right)
+{};
+
+void movement::tankDrive::right_handed_userDrive() {
+  TD_leftside.spin(forward, ((driver.Axis2.value() + driver.Axis4.value())/10), volt);
+  TD_rightside.spin(forward, ((driver.Axis2.value() - driver.Axis4.value())/10), volt);
+}
+
+void movement::tankDrive::single_stick_right_handed_userDrive() {
+  TD_leftside.spin(forward, ((driver.Axis2.value() + driver.Axis1.value())/10), volt);
+  TD_rightside.spin(forward, ((driver.Axis2.value() - driver.Axis1.value())/10), volt);
+}
+
+void movement::tankDrive::left_handed_userDrive() {
+  TD_leftside.spin(forward, ((driver.Axis3.value() + driver.Axis1.value())/10), volt);
+  TD_rightside.spin(forward, ((driver.Axis3.value() - driver.Axis1.value())/10), volt);
+}
+
+void movement::tankDrive::single_stick_left_handed_userDrive() {
+  TD_leftside.spin(forward, ((driver.Axis3.value() + driver.Axis4.value())/10), volt);
+  TD_rightside.spin(forward, ((driver.Axis3.value() - driver.Axis4.value())/10), volt);
+}

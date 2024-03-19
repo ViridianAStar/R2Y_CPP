@@ -27,7 +27,7 @@ motor_group rightMotors = motor_group(trMotor10, brMotor20);
 // Define Motor Groups End
 
 // Define Other Devices Start
-// DO NOT RENAME THE INERTIAL/ROTATIONAL SENSOR OBJECT UNLESS YOU CHANGE THE EXTERN IN vex.h
+// DO NOT RENAME THE INERTIAL/ROTATIONAL SENSOR OR PRIMARY CONTROLLER OBJECTS UNLESS YOU CHANGE THE EXTERN IN vex.h
 inertial rotationalSensor = inertial(PORT14);
 controller driver = controller(primary);
 // Define Other Devices End
@@ -66,8 +66,10 @@ movement driveControl = movement(
   // pass this your anti integral windup bounds (lateral, rotational, swing)
   41, 10, 10
 
-  );
-// Drive Control Initialization Start
+);
+
+movement::tankDrive userControl = movement::tankDrive(leftMotors, rightMotors);
+// Drive Control Initialization End
 
 void prepSys() {
    // Preamble that tells the robot it is where it should be to start
@@ -122,26 +124,6 @@ void triangle() {
 void brakemode(brakeType mode) {
    leftMotors.setStopping(mode);
    rightMotors.setStopping(mode);
-}
-
-void right_handed_userDrive() {
-   leftMotors.spin(forward, ((driver.Axis2.value() + driver.Axis4.value())/10), volt);
-   rightMotors.spin(forward, ((driver.Axis2.value() - driver.Axis4.value())/10), volt);
-}
-
-void single_stick_right_handed_userDrive() {
-   leftMotors.spin(forward, ((driver.Axis2.value() + driver.Axis1.value())/10), volt);
-   rightMotors.spin(forward, ((driver.Axis2.value() - driver.Axis1.value())/10), volt);
-}
-
-void left_handed_userDrive() {
-   leftMotors.spin(forward, ((driver.Axis3.value() + driver.Axis1.value())/10), volt);
-   rightMotors.spin(forward, ((driver.Axis3.value() - driver.Axis1.value())/10), volt);
-}
-
-void single_stick_left_handed_userDrive() {
-   leftMotors.spin(forward, ((driver.Axis3.value() + driver.Axis4.value())/10), volt);
-   rightMotors.spin(forward, ((driver.Axis3.value() - driver.Axis4.value())/10), volt);
 }
 
 void cardinalswingTest() {
@@ -319,7 +301,6 @@ int main() {
    //cardinalswingTest();
    //driveControl.move_distance(12);
    while (1) {
-      single_stick_left_handed_userDrive();
    }
    
 }

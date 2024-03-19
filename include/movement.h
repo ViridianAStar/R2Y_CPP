@@ -46,4 +46,16 @@ class movement {
         float reduce_negative_180_to_180(float angle);
         float reduce_0_to_360(float angle);
 
+    class tankDrive {
+    public: 
+        motor_group TD_leftside;
+        motor_group TD_rightside;
+        tankDrive(motor_group left, motor_group right);
+
+        void right_handed_userDrive();
+        void single_stick_right_handed_userDrive();
+        void left_handed_userDrive();
+        void single_stick_left_handed_userDrive();
+    };
+
 };

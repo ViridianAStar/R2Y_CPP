@@ -19,3 +19,4 @@
 
 using namespace vex;
 extern inertial rotationalSensor;
+extern controller driver;
