@@ -55,7 +55,7 @@ movement driveControl = movement(
   3.8, 0.0055, .075, // kP, kI, kD
 
   // pass this your timeout values (timeout, settle time)
-  2000, 150, 
+  10000, 150, 
 
   // pass this your voltage max/min values (lateral, rotational, swing)
   11, 9, 8,
@@ -278,30 +278,24 @@ void totalswingTest() {
    subcardinalswingTest();
 }
 
-void showcase() {
-   while (1) {
-      prepSys();
-      square();
-      task::sleep(5000);
-      prepSys();
-      triangle();
-      task::sleep(5000);
+void auton() {
+   driveControl.move_distance(190);
+   for (int i = 0; i <= 5; i++) {
+      driveControl.move_distance(-50);
+      wait(50, msec);
+      driveControl.move_distance(50);
    }
 }
 
 int main() {
    prepSys();
-   //brakemode(coast);
-   //driveControl.move_distance(60);
-   //driveControl.swing_towards_angle_right(-90);
-   //driveControl.move_distance_spiral(144, 90);
+
    brakemode(brake);
-   /*wait(1, seconds);
-   driveControl.move_distance(24);*/
-   //cardinalswingTest();
-   //driveControl.move_distance(12);
+
    while (1) {
-      userControl.single_stick_left_handed_userDrive();
+      driver.ButtonA.pressed(auton);
+      leftMotors.spin(forward, (driver.Axis3.value() + driver. Axis1.value())/10, volt);
+      rightMotors.spin(forward, (driver.Axis3.value() - driver.Axis1.value())/10, volt);
    }
    
 }
