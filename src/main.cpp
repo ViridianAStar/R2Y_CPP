@@ -291,9 +291,13 @@ int main() {
    prepSys();
 
    brakemode(brake);
-
+   driveControl.move_distance(190);
+   for (int i = 0; i <= 2; i++) {
+      driveControl.move_distance(-50);
+      wait(50, msec);
+      driveControl.move_distance(50);
+   }
    while (1) {
-      driver.ButtonA.pressed(auton);
       leftMotors.spin(forward, (driver.Axis3.value() + driver. Axis1.value())/10, volt);
       rightMotors.spin(forward, (driver.Axis3.value() - driver.Axis1.value())/10, volt);
    }
