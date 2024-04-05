@@ -29,7 +29,7 @@ using namespace vex;
   }
   // Functions borrowed from JAR-Template End
   
-    movement::movement(motor_group left, motor_group right, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, int timeout, int settletime, float TMV, float SMV, float LMV, float LaiwValue, float RaiwValue, float SaiwValue, float LsettleBounds, float RsettleBounds, float SsettleBounds, float someDistance) :
+    movement::movement(motor_group left, motor_group right, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, int timeout, int settletime, float TMV, float SMV, float LMV, float LaiwValue, float RaiwValue, float SaiwValue, float LsettleBounds, float RsettleBounds, float SsettleBounds, float wheelBase) :
         leftside(left),
         rightside(right),
         lkP(lkp),
@@ -54,7 +54,7 @@ using namespace vex;
         lsettleBounds(LsettleBounds),
         rsettleBounds(RsettleBounds),
         ssettleBounds(SsettleBounds),
-        SomeDistance(someDistance)
+        WheelBase(wheelBase)
       {};
 
       // go a distance

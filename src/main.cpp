@@ -35,7 +35,7 @@ controller driver = controller(primary);
 // Global Variables Start
 float wheelDiameter = 2.75;
 float gearRatio = 1.0;
-float someDistance = 20;
+float wheelbase = 7;
 // Global Variables End 
 
 // Drive Control Initialization Start
@@ -65,7 +65,10 @@ movement driveControl = movement(
   5, 1, 1,
 
   // pass this your anti integral windup bounds (lateral, rotational, swing)
-  41, 10, 10
+  41, 10, 10,
+
+  // Distance between wheel sides
+  wheelbase
 
 );
 
@@ -298,6 +301,7 @@ int main() {
       wait(50, msec);
       driveControl.move_distance(50);
    }
+   driveControl.swing_towards_angle_left(90);
    while (1) {
       leftMotors.spin(forward, (driver.Axis3.value() + driver. Axis1.value())/10, volt);
       rightMotors.spin(forward, (driver.Axis3.value() - driver.Axis1.value())/10, volt);

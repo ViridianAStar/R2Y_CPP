@@ -25,11 +25,11 @@ class movement {
         float smv; 
         float gearRatio;
         float circumference;
-        float SomeDistance;
+        float WheelBase;
         motor_group leftside;
         motor_group rightside;
 
-        movement(motor_group left, motor_group right, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, int timeout, int settletime, float LMV, float RMV, float SMV, float LaiwValue, float RaiwValue, float SaiwValue, float LsettleBounds, float RsettleBounds, float SsettleBounds, float someDistance);
+        movement(motor_group left, motor_group right, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, int timeout, int settletime, float LMV, float RMV, float SMV, float LaiwValue, float RaiwValue, float SaiwValue, float LsettleBounds, float RsettleBounds, float SsettleBounds, float wheelBase);
         
         void move_distance(float distance);
         void move_distance_spiral(float distance, float desired_end_angle);
