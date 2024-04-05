@@ -35,6 +35,7 @@ controller driver = controller(primary);
 // Global Variables Start
 float wheelDiameter = 2.75;
 float gearRatio = 1.0;
+float someDistance = 20;
 // Global Variables End 
 
 // Drive Control Initialization Start
