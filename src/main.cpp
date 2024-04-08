@@ -35,7 +35,7 @@ controller driver = controller(primary);
 // Global Variables Start
 float wheelDiameter = 2.75;
 float gearRatio = 1.0;
-float wheelbase = 7;
+float wheelbase = 6.5;
 // Global Variables End 
 
 // Drive Control Initialization Start
@@ -50,7 +50,7 @@ movement driveControl = movement(
   1.45, 0.0023, 0.7,  // kP, kI, kD
 
   // pass this your rotational PID tuning values
-  0.8, 0.008, 0.5, // kP, kI, kD
+  0.95, 0.0085, 0.64, // kP, kI, kD
 
   // pass this your swing PID tuning values
   3.8, 0.0055, .075, // kP, kI, kD
@@ -295,13 +295,17 @@ int main() {
    prepSys();
 
    brakemode(brake);
-   driveControl.move_distance(190);
+   /*driveControl.move_distance(190);
    for (int i = 0; i <= 2; i++) {
       driveControl.move_distance(-50);
       wait(50, msec);
       driveControl.move_distance(50);
    }
-   driveControl.swing_towards_angle_left(90);
+   driveControl.swing_towards_angle_left(90);*/
+   driveControl.movingSwingleft(10, 20);
+   driveControl.point_at_angle(-20);
+   driveControl.movingSwingleft(60, 180);
+   driveControl.point_at_angle(-150);
    while (1) {
       leftMotors.spin(forward, (driver.Axis3.value() + driver. Axis1.value())/10, volt);
       rightMotors.spin(forward, (driver.Axis3.value() - driver.Axis1.value())/10, volt);

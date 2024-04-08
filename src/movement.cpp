@@ -101,38 +101,43 @@ using namespace vex;
         rightside.stop(hold);
       }
 
-      void movement::movingSwingleft(float radius, float angle) {
-        // so we don't have to deal with differential jank
-        float initialpositionLeft = leftMotors.position(deg);
-        float initialpositionRight = rightMotors.position(deg);
 
-        float distanceLeft = (((2*M_PI)*radius)*(angle/360));
-        float distanceRight = (((2*M_PI)*(radius+WheelBase))*(angle/360))
+      // CHANGE THIS ONE
+      void movement::movingSwingleft(float distance) {
 
-        float desiredLeft = ((distanceLeft*360)/(circumference*gearRatio));
-        float desiredRight = ((distanceRight*360)/(circumference*gearRatio));
+        // first we convert desired linear distance to degrees
+        float degreesWanted = ((distance*360)/(circumference*gearRatio));
+        printf("desired %f\n", degreesWanted);
+        // we record the initial average position of the motors
+        float initialavgPosition = ((leftside.position(deg) + rightside.position(deg))/2);
+        printf("init %f\n", initialavgPosition);
+        // your start average position is your initial average position
+        float avgPositon = initialavgPosition;
 
-        float avgPositionleft = initialpositionLeft;
+        // record your initial heading
+        float heading = reduce_0_to_360(rotationalSensor.rotation());
+        // your desired heading is your initial heading this keeps you on a straight line
+        float desired_heading = heading;
 
-        float avgPositionright = initialpositionRight;
-
-        pid left = pid(lkP*0.75, lkI*0.75, lkD*0.75, laiwValue, Timeout, settleTime, lsettleBounds, (lmv-1.334));
-        pid right = pid(lkP, lkI, lkD, laiwValue, Timeout, settleTime, lsettleBounds, lmv);
+        // initialize PIDs
+        pid lateral = pid(lkP, lkI, lkD, laiwValue, Timeout, settleTime, lsettleBounds, lmv);
+        pid rotational = pid(rkP, rkI, rkD, raiwValue, Timeout, settleTime, rsettleBounds, tmv);
         
-        while (right.active() == true) {
-          avgPositionleft = leftMotors.position(deg);
-          avgPositionright = rightMotors.position(deg);
+        while (lateral.active() == true) {
+          // while youre lateral pid is active calculate your average position and heading
+          avgPositon = ((leftside.position(deg) + rightside.position(deg))/2);
+          heading = reduce_0_to_360(rotationalSensor.rotation());
 
-          float lefterror = (desiredLeft + initialpositionLeft) - avgPositionleft;
-          float righterror = (desiredRight + initialpositionRight) - avgPositionright;
+          // calculate your errors to give to PID (we say that our desired position is our initial average positon + our desired distance)
+          float lateralerror = (degreesWanted + initialavgPosition) - avgPositon;
+          printf("lerror %f\n", lateralerror);
+          float headingerror = reduce_negative_180_to_180(desired_heading - heading);
 
-          rightMotors.spin(forward, right.calcPID(righterror), volt);
-          if (left.active() == true) {
-            leftMotors.spin(forward, left.calcPID(lefterror), volt);
-          } else {
-            leftMotors.stop(hold);
-          }
+          // spin our motors with the desired amounts of power.
+          leftside.spin(forward, (lateral.calcPID(lateralerror) + rotational.calcPID(headingerror)), volt);
+          rightside.spin(forward, (lateral.calcPID(lateralerror) - rotational.calcPID(headingerror)), volt);
 
+          // stop doing things for 10 milliseconds after every loop
           task::sleep(10);
         }
 
@@ -140,6 +145,52 @@ using namespace vex;
         leftside.stop(hold);
         rightside.stop(hold);
       }
+
+      /*void movement::movingSwingleft(float radius, float angle) {
+        // so we don't have to deal with differential jank
+        float initialpositionLeft = leftside.position(deg);
+        float initialpositionRight = rightside.position(deg);
+
+        // linearize arc length
+        float distanceLeft = (((2*M_PI)*(radius - WheelBase))*(angle/360));
+        float distanceRight = (((2*M_PI)*(radius))*(angle/360));
+
+        // convert to degrees on the wheel
+        float desiredLeft = ((distanceLeft*360)/(circumference*gearRatio));
+        float desiredRight = ((distanceRight*360)/(circumference*gearRatio));
+
+        // initialize average positions
+        float avgPositionleft = initialpositionLeft;
+        float avgPositionright = initialpositionRight;
+
+        // initialize PID's
+        pid left = pid(lkP*0.8, lkI*2, lkD, laiwValue, Timeout, settleTime, lsettleBounds, (lmv*.75));
+        pid right = pid(lkP, lkI, lkD, laiwValue, Timeout, settleTime, lsettleBounds, lmv);
+        
+        while (right.active() == true) {
+
+          avgPositionleft = leftside.position(deg);
+          avgPositionright = rightside.position(deg);
+
+          float lefterror = (desiredLeft + initialpositionLeft) - avgPositionleft;
+          float righterror = (desiredRight + initialpositionRight) - avgPositionright;
+
+          /*if (left.active() == true) {
+            leftside.spin(forward, left.calcPID(lefterror), volt);
+          } else {
+            leftside.stop(hold);
+          }
+          leftside.spin(forward, left.calcPID(lefterror), volt);
+          rightside.spin(forward, right.calcPID(righterror), volt);
+
+
+          task::sleep(10);
+        }
+
+        // when its not active, stop.
+        rightside.stop(hold);
+        leftside.stop(hold);
+      }*/
 
       void movement::movingSwingright(float radius, float angle) {
         
