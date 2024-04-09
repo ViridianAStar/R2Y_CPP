@@ -56,7 +56,7 @@ movement driveControl = movement(
   3.8, 0.0055, .075, // kP, kI, kD
 
   // pass this your timeout values (timeout, settle time)
-  10000, 150, 
+  5000, 150, 
 
   // pass this your voltage max/min values (lateral, rotational, swing)
   11, 9, 8,
@@ -294,7 +294,7 @@ void auton() {
 int main() {
    prepSys();
 
-   brakemode(brake);
+   
    /*driveControl.move_distance(190);
    for (int i = 0; i <= 2; i++) {
       driveControl.move_distance(-50);
@@ -302,10 +302,9 @@ int main() {
       driveControl.move_distance(50);
    }
    driveControl.swing_towards_angle_left(90);*/
-   driveControl.movingSwingleft(10, 20);
-   driveControl.point_at_angle(-20);
-   driveControl.movingSwingleft(60, 180);
-   driveControl.point_at_angle(-150);
+   driveControl.movingSwingleft(0.8, 135);
+   driveControl.movingSwingright(0.75, 90);
+   brakemode(brake);
    while (1) {
       leftMotors.spin(forward, (driver.Axis3.value() + driver. Axis1.value())/10, volt);
       rightMotors.spin(forward, (driver.Axis3.value() - driver.Axis1.value())/10, volt);
