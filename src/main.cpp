@@ -55,17 +55,20 @@ movement driveControl = movement(
   // pass this your swing PID tuning values
   3.8, 0.0055, .075, // kP, kI, kD
 
+  // pass this your moving swing PID tuning values
+  2, 0.3, 2, // kP, kI, kD
+
   // pass this your timeout values (timeout, settle time)
-  5000, 150, 
+  10000, 150, 
 
-  // pass this your voltage max/min values (lateral, rotational, swing)
-  11, 9, 8,
+  // pass this your voltage max/min values (rotational, swing, moving swing, lateral)
+  8, 9, 8, 11,
 
-  // pass this your settle bounds (lateral, rotational, swing)
-  5, 1, 1,
+  // pass this your settle bounds (lateral, rotational, swing, moving swing)
+  5, 1, 1, 1,
 
-  // pass this your anti integral windup bounds (lateral, rotational, swing)
-  41, 10, 10,
+  // pass this your anti integral windup bounds (lateral, rotational, swing, moving swing)
+  41, 10, 10, 30,
 
   // Distance between wheel sides
   wheelbase
@@ -302,8 +305,11 @@ int main() {
       driveControl.move_distance(50);
    }
    driveControl.swing_towards_angle_left(90);*/
-   driveControl.movingSwingleft(0.8, 135);
-   driveControl.movingSwingright(0.75, 90);
+   printf("Rot: %f\n" , rotationalSensor.rotation());
+   driveControl.movingSwingleft(0.55, 190);
+   //driveControl.swing_towards_angle_left(110);
+   printf("Rot: %f\n" , rotationalSensor.rotation());
+   //driveControl.movingSwingright(0.75, 90);
    brakemode(brake);
    while (1) {
       leftMotors.spin(forward, (driver.Axis3.value() + driver. Axis1.value())/10, volt);

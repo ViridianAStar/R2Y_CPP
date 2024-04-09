@@ -29,31 +29,47 @@ using namespace vex;
   }
   // Functions borrowed from JAR-Template End
   
-    movement::movement(motor_group left, motor_group right, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, int timeout, int settletime, float TMV, float SMV, float LMV, float LaiwValue, float RaiwValue, float SaiwValue, float LsettleBounds, float RsettleBounds, float SsettleBounds, float wheelBase) :
+    movement::movement(motor_group left, motor_group right, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, float mskp, float mski, float mskd, int timeout, int settletime, float TMV, float SMV, float MSMV, float LMV, float LaiwValue, float RaiwValue, float SaiwValue, float MSaiwValue, float LsettleBounds, float RsettleBounds, float SsettleBounds, float MSsettleBounds, float wheelBase) :
         leftside(left),
         rightside(right),
+
         lkP(lkp),
         lkI(lki),
         lkD(lkd),
+
         rkP(rkp),
         rkI(rki),
         rkD(rkd),
+
         skP(skp),
         skI(ski),
         skD(skd),
+
+        mskP(mskp),
+        mskI(mski),
+        mskD(mskd),
+
         settleTime(settletime),
         Timeout(timeout),
+
         tmv(TMV),
         lmv(LMV),
         smv(SMV),
+        msmv(MSMV),
+
         gearRatio(gearratio),
         circumference(M_PI * wheeldiameter),
+
         laiwValue(LaiwValue),
         raiwValue(RaiwValue),
         saiwValue(SaiwValue),
+        msaiwValue(MSaiwValue),
+
         lsettleBounds(LsettleBounds),
         rsettleBounds(RsettleBounds),
         ssettleBounds(SsettleBounds),
+        mssettleBounds(MSsettleBounds),
+
         WheelBase(wheelBase)
       {};
 
@@ -102,13 +118,14 @@ using namespace vex;
       }
 
 
-      void movement::movingSwingleft(float differentialPerc, float angle) {
+      void movement::movingSwingleft(float differentialPerc, float inangle) {
         // so we don't have to deal with differential jank
         float initialpositionLeft = leftside.position(deg);
         float initialpositionRight = rightside.position(deg);
 
+        float angle = -1 * inangle;
         // initialize PID
-        pid motion = pid(lkP, lkI, lkD, saiwValue, Timeout, settleTime, ssettleBounds, lmv);
+        pid motion = pid(mskP, mskI, mskD, msaiwValue, Timeout, settleTime, mssettleBounds, msmv);
         
 
         float heading = reduce_0_to_360(rotationalSensor.rotation());
@@ -135,13 +152,14 @@ using namespace vex;
         rightside.setPosition(initialpositionRight, deg);
       }
 
-      void movement::movingSwingright(float differentialPerc, float angle) {
+      void movement::movingSwingright(float differentialPerc, float inangle) {
         // so we don't have to deal with differential jank
         float initialpositionLeft = leftside.position(deg);
         float initialpositionRight = rightside.position(deg);
+        float angle = reduce_negative_180_to_180(-1 * inangle);
 
         // initialize PID
-        pid motion = pid(lkP, lkI, lkD, saiwValue, Timeout, settleTime, ssettleBounds, lmv);
+        pid motion = pid(mskP, mskI, mskD, msaiwValue, Timeout, settleTime, mssettleBounds, msmv);
 
         float heading = reduce_0_to_360(rotationalSensor.rotation());
 
@@ -149,7 +167,7 @@ using namespace vex;
           
           heading = reduce_0_to_360(rotationalSensor.rotation());
 
-          float headingerror = angle - heading;
+          float headingerror = reduce_negative_180_to_180(angle - heading);
 
           leftside.spin(forward, motion.calcPID(headingerror), volt);
           rightside.spin(forward, motion.calcPID(headingerror)*differentialPerc, volt);
