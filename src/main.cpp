@@ -56,19 +56,19 @@ movement driveControl = movement(
   3.8, 0.0055, .075, // kP, kI, kD
 
   // pass this your moving swing PID tuning values
-  2, 0.3, 2, // kP, kI, kD
+  1.5, 0.3, 0.7, // kP, kI, kD
 
   // pass this your timeout values (timeout, settle time)
   10000, 150, 
 
   // pass this your voltage max/min values (rotational, swing, moving swing, lateral)
-  8, 9, 8, 11,
+  8, 9, 11, 11,
 
   // pass this your settle bounds (lateral, rotational, swing, moving swing)
   5, 1, 1, 1,
 
   // pass this your anti integral windup bounds (lateral, rotational, swing, moving swing)
-  41, 10, 10, 30,
+  41, 10, 10, 35,
 
   // Distance between wheel sides
   wheelbase
@@ -285,12 +285,12 @@ void totalswingTest() {
    subcardinalswingTest();
 }
 
-void auton() {
-   driveControl.move_distance(190);
-   for (int i = 0; i <= 5; i++) {
-      driveControl.move_distance(-50);
-      wait(50, msec);
-      driveControl.move_distance(50);
+void widecurveLeft(float angle, float sidelength, int iterations) {
+   driveControl.set_lateral_tuning(.25, 0.005, 0.2);
+   driveControl.set_swing_tuning((3.8/2.5), 0.0055, .075);
+   for (int i = 0; i < iterations; i++) {
+      driveControl.move_distance(sidelength);
+      driveControl.swing_towards_angle_right(driveControl.reduce_0_to_360(rotationalSensor.rotation()) - angle);
    }
 }
 
@@ -304,12 +304,8 @@ int main() {
       wait(50, msec);
       driveControl.move_distance(50);
    }
-   driveControl.swing_towards_angle_left(90);*/
-   printf("Rot: %f\n" , rotationalSensor.rotation());
-   driveControl.movingSwingleft(0.55, 190);
-   //driveControl.swing_towards_angle_left(110);
-   printf("Rot: %f\n" , rotationalSensor.rotation());
-   //driveControl.movingSwingright(0.75, 90);
+   */
+   widecurveLeft(15, 12, 24);
    brakemode(brake);
    while (1) {
       leftMotors.spin(forward, (driver.Axis3.value() + driver. Axis1.value())/10, volt);

@@ -118,32 +118,31 @@ using namespace vex;
       }
 
 
-      void movement::movingSwingleft(float differentialPerc, float inangle) {
-        // so we don't have to deal with differential jank
+      void movement::movingSwingleft(float differentialPerc, float radius, float angle) {
         float initialpositionLeft = leftside.position(deg);
         float initialpositionRight = rightside.position(deg);
 
-        float angle = -1 * inangle;
+        float leftDistance = (((2*M_PI*(radius-WheelBase)*angle)/360)*(360)/(circumference*gearRatio));
+        float rightDistance = (((2*M_PI*(radius)*angle)/360)*(360)/(circumference*gearRatio));
+
+        
         // initialize PID
         pid motion = pid(mskP, mskI, mskD, msaiwValue, Timeout, settleTime, mssettleBounds, msmv);
-        
-
-        float heading = reduce_0_to_360(rotationalSensor.rotation());
 
         while (motion.active() == true) {
           
-          heading = reduce_0_to_360(rotationalSensor.rotation());
+          float leftError = (leftDistance + initialpositionLeft) - leftside.position(deg);
+          float rightError = (rightDistance + initialpositionRight) - rightside.position(deg);
 
-          float headingerror = angle - heading;
 
-          leftside.spin(forward, motion.calcPID(headingerror)*differentialPerc, volt);
-          rightside.spin(forward, motion.calcPID(headingerror), volt);
+          leftside.spin(forward, motion.calcPID(leftError)*differentialPerc, volt);
+          rightside.spin(forward, motion.calcPID(rightError), volt);
 
 
           task::sleep(10);
         }
 
-        //point_at_angle(-angle);
+        
 
         // when its not active, stop.
         rightside.stop(hold);
@@ -152,25 +151,19 @@ using namespace vex;
         rightside.setPosition(initialpositionRight, deg);
       }
 
-      void movement::movingSwingright(float differentialPerc, float inangle) {
-        // so we don't have to deal with differential jank
-        float initialpositionLeft = leftside.position(deg);
-        float initialpositionRight = rightside.position(deg);
-        float angle = reduce_negative_180_to_180(-1 * inangle);
+      void movement::movingSwingright(float differentialPerc, float radius, float angle) {
 
         // initialize PID
         pid motion = pid(mskP, mskI, mskD, msaiwValue, Timeout, settleTime, mssettleBounds, msmv);
 
-        float heading = reduce_0_to_360(rotationalSensor.rotation());
-
         while (motion.active() == true) {
           
-          heading = reduce_0_to_360(rotationalSensor.rotation());
 
-          float headingerror = reduce_negative_180_to_180(angle - heading);
 
-          leftside.spin(forward, motion.calcPID(headingerror), volt);
-          rightside.spin(forward, motion.calcPID(headingerror)*differentialPerc, volt);
+
+
+          //leftside.spin(forward, motion.calcPID()*differentialPerc, volt);
+          //rightside.spin(forward, motion.calcPID(), volt);
 
 
           task::sleep(10);
@@ -181,8 +174,9 @@ using namespace vex;
         // when its not active, stop.
         rightside.stop(hold);
         leftside.stop(hold);
-        leftside.setPosition(initialpositionLeft, deg);
-        rightside.setPosition(initialpositionRight, deg);
+        //leftside.setPosition(initialpositionLeft, deg);
+        //rightside.setPosition(initialpositionRight, deg);
+
       }
 
       // point front towards a given angle.
