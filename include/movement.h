@@ -43,6 +43,8 @@ class movement {
         motor_group leftside;
         motor_group rightside;
 
+        bool interupt = false;
+
         movement(motor_group left, motor_group right, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, float mskp, float mski, float mskd, int timeout, int settletime, float TMV, float SMV, float MSMV, float LMV, float LaiwValue, float RaiwValue, float SaiwValue, float MSaiwValue, float LsettleBounds, float RsettleBounds, float SsettleBounds, float MSsettleBounds, float wheelBase);
         
         void move_distance(float distance);
@@ -57,6 +59,8 @@ class movement {
         void set_timeout(int t);
         void set_settle_time(int t);
         void set_voltage_limits(float LMV, float TMV, float SMV);
+
+        void triggerInterupt();
 
         float reduce_negative_90_to_90(float angle);
         float reduce_negative_180_to_180(float angle);
