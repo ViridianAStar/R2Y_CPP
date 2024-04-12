@@ -94,7 +94,7 @@ using namespace vex;
         pid lateral = pid(lkP, lkI, lkD, laiwValue, Timeout, settleTime, lsettleBounds, lmv);
         pid rotational = pid(rkP, rkI, rkD, raiwValue, Timeout, settleTime, rsettleBounds, tmv);
         
-        while (lateral.active() == true) {
+        while (lateral.active() == true && interrupt == false) {
           // while youre lateral pid is active calculate your average position and heading
           avgPositon = ((leftside.position(deg) + rightside.position(deg))/2);
           heading = reduce_0_to_360(rotationalSensor.rotation());
@@ -123,7 +123,7 @@ using namespace vex;
         // initialize PID
         pid rotation = pid(rkP, rkI, rkD, raiwValue, Timeout, settleTime, rsettleBounds, tmv)
 
-        while (rotation.active() == true) {
+        while (rotation.active() == true && interrupt == false) {
 
 
           task::sleep(10);
@@ -141,7 +141,7 @@ using namespace vex;
         // initialize PID
         pid motion = pid(mskP, mskI, mskD, msaiwValue, Timeout, settleTime, mssettleBounds, msmv);
 
-        while (motion.active() == true) {
+        while (motion.active() == true && interrupt == false) {
           
 
 
@@ -173,7 +173,7 @@ using namespace vex;
         pid rotational = pid(rkP, rkI, rkD, raiwValue, Timeout, settleTime, rsettleBounds, tmv);
 
         // while we aren't within the accepted values for our desired angle
-        while (rotational.active() == true) {
+        while (rotational.active() == true && interrupt == false) {
           // our current heading
           heading = reduce_0_to_360(rotationalSensor.rotation());
 
@@ -205,7 +205,7 @@ using namespace vex;
         pid swing = pid(skP, skI, skD, saiwValue, Timeout, settleTime, ssettleBounds, smv);
 
         // while it is active:
-        while (swing.active() == true) {
+        while (swing.active() == true && interrupt == false) {
           
           // get your current heading
           heading = reduce_0_to_360(rotationalSensor.rotation());
@@ -239,7 +239,7 @@ using namespace vex;
         float retpos = rightside.position(deg);
 
         pid swing = pid(skP, skI, skD, saiwValue, Timeout, settleTime, ssettleBounds, smv);
-        while (swing.active() == true) {
+        while (swing.active() == true && interrupt == false) {
 
           heading = reduce_0_to_360(rotationalSensor.rotation());
           float swingerror = reduce_negative_180_to_180(angle - heading);
@@ -289,7 +289,14 @@ using namespace vex;
         tmv = TMV;
         smv = SMV;
       }
+      void movement::triggerInterupt() {
+        interupt = true;
+      }
 
+      void movement::clearInterupt() {
+        interupt = false;
+      }
+//
 movement::tankDrive::tankDrive(motor_group left, motor_group right) : 
   TD_leftside(left),
   TD_rightside(right)

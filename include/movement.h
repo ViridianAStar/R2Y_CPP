@@ -61,6 +61,7 @@ class movement {
         void set_voltage_limits(float LMV, float TMV, float SMV);
 
         void triggerInterupt();
+        void clearInterupt();
 
         float reduce_negative_90_to_90(float angle);
         float reduce_negative_180_to_180(float angle);

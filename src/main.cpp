@@ -29,6 +29,8 @@ motor_group rightMotors = motor_group(trMotor10, brMotor20);
 // Define Other Devices Start
 // DO NOT RENAME THE INERTIAL/ROTATIONAL SENSOR OR PRIMARY CONTROLLER OBJECTS UNLESS YOU CHANGE THE EXTERN IN vex.h
 inertial rotationalSensor = inertial(PORT14);
+distance leftdistanceSensor = distance(PORT5);
+distance rightdistanceSensor = distance(PORT7);
 controller driver = controller(primary);
 // Define Other Devices End
 
@@ -294,6 +296,27 @@ void widecurveLeft(float angle, float sidelength, int iterations) {
    }
 }
 
+bool checking = false;
+
+int where_is_error() {
+
+   while (checking == true) {
+      if (leftdistanceSensor.objectDistance(mm) < 100) {
+         driveControl.triggerInterupt();
+         driveControl.point_at_angle(rotationalSensor.rotation() + 5);
+      } else if (rightdistanceSensor.objectDistance(mm) < 100) {
+         driveControl.triggerInterupt();
+         driveControl.point_at_angle(rotationalSensor.rotation() - 5);
+      } else {
+         driveControl.move(12);
+      }
+
+      task::sleep(10);
+   }
+
+   return(-1);
+}
+
 int main() {
    prepSys();
 
@@ -305,7 +328,6 @@ int main() {
       driveControl.move_distance(50);
    }
    */
-   widecurveLeft(15, 12, 24);
    brakemode(brake);
    while (1) {
       leftMotors.spin(forward, (driver.Axis3.value() + driver. Axis1.value())/10, volt);
