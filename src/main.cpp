@@ -30,6 +30,7 @@ motor_group rightMotors = motor_group(trMotor10, brMotor20);
 // DO NOT RENAME THE INERTIAL/ROTATIONAL SENSOR OR PRIMARY CONTROLLER OBJECTS UNLESS YOU CHANGE THE EXTERN IN vex.h
 inertial rotationalSensor = inertial(PORT14);
 distance leftdistanceSensor = distance(PORT5);
+distance centerdistanceSensor = distance(PORT6);
 distance rightdistanceSensor = distance(PORT7);
 controller driver = controller(primary);
 // Define Other Devices End
@@ -49,7 +50,7 @@ movement driveControl = movement(
   gearRatio, 
   wheelDiameter, 
   // pass this your lateral PID tuning values
-  .25, 0.005, 0.2  // kP, kI, kD
+  .25, 0.005, 0.2,  // kP, kI, kD
 
   // pass this your rotational PID tuning values
   0.95, 0.0085, 0.64, // kP, kI, kD
@@ -300,18 +301,77 @@ bool checking = false;
 int where_is_error() {
 
    while (checking == true) {
-      if (leftdistanceSensor.objectDistance(mm) < 100) {
+
+      if (leftdistanceSensor.objectDistance(mm) <= 105) {
+
          driveControl.triggerInterupt();
          driveControl.point_at_angle(rotationalSensor.rotation() + 5);
-      } else if (rightdistanceSensor.objectDistance(mm) < 100) {
+
+      } else if (rightdistanceSensor.objectDistance(mm) <= 105 ) {
+
          driveControl.triggerInterupt();
          driveControl.point_at_angle(rotationalSensor.rotation() - 5);
+
+      } else if (centerdistanceSensor.objectDistance(mm) <= 155) {
+
+         if (rightdistanceSensor.objectDistance(mm) < leftdistanceSensor.objectDistance(mm)) {
+
+         driveControl.triggerInterupt();
+         driveControl.point_at_angle(rotationalSensor.rotation() - 5);
+
+         } else if (rightdistanceSensor.objectDistance(mm) > leftdistanceSensor.objectDistance(mm)){
+
+         driveControl.triggerInterupt();
+         driveControl.point_at_angle(rotationalSensor.rotation() + 5);
+
+         } else if ((rightdistanceSensor.objectDistance(mm) <= leftdistanceSensor.objectDistance(mm) + 5 && rightdistanceSensor.objectDistance(mm) >= leftdistanceSensor.objectDistance(mm) - 5) && (leftdistanceSensor.objectDistance(mm) <= rightdistanceSensor.objectDistance(mm) + 5 && leftdistanceSensor.objectDistance(mm) >= rightdistanceSensor.objectDistance(mm) - 5)) {
+            
+            int validated_paths[2] = {0, 0};
+            float path_weights[2] = {0.0, 0.0};
+
+            driveControl.triggerInterupt();
+            driveControl.point_at_angle(rotationalSensor.rotation() + 45);
+
+            float p0R = rightdistanceSensor.objectDistance(mm);
+            float p0C = centerdistanceSensor.objectDistance(mm);
+            float p0L = leftdistanceSensor.objectDistance(mm);
+            float ph0 = rotationalSensor.rotation();
+
+            driveControl.point_at_angle(rotationalSensor.rotation() + 90);
+
+            float p1R = rightdistanceSensor.objectDistance(mm);
+            float p1C = centerdistanceSensor.objectDistance(mm);
+            float p1L = leftdistanceSensor.objectDistance(mm);
+            float ph1 = rotationalSensor.rotation();
+
+            if (p0C > 150) {
+               if (p0L <= 105 && p0R <= 105) {
+                  validated_paths[0] = 0;
+               } else if (p0L <= 105 && p0R > 105) {
+                  validated_paths[0] = 1;
+                  if (p0L <= 45) {
+                     path_weights[0] = 0.1;
+                  } else if (p0L > 45 && p0L <= 60) {
+                     
+                  }
+               } else if (p0L > 105 && p0R <= 105) {
+                  validated_paths[0] = 1;
+                  path_weights[0] = -;
+               }
+            } 
+
+         }
+
       }
 
       task::sleep(10);
    }
-
+ 
    return(-1);
+}
+
+void self_guidance() {
+
 }
 
 int main() {
