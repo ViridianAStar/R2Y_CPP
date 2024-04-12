@@ -351,12 +351,38 @@ int where_is_error() {
                   validated_paths[0] = 1;
                   if (p0L <= 45) {
                      path_weights[0] = 0.1;
+                     ph0 = ph0 + 25;
                   } else if (p0L > 45 && p0L <= 60) {
-                     
+                     path_weights[0] = 0.25;
+                     ph0 = ph0 + 20;
+                  } else if (p0L > 60 && p0L <= 75) {
+                     path_weights[0] = 0.45;
+                     ph0 = ph0 + 15;
+                  } else if (p0L > 75 && p0L <= 90) {
+                     path_weights[0] = 0.7
+                     ph0 = ph0 + 10;
+                  } else if (p0L > 90 && p0L <= 105) {
+                     path_weights[0] = 0.85; 
+                     ph0 = ph0 + 5;
                   }
                } else if (p0L > 105 && p0R <= 105) {
                   validated_paths[0] = 1;
-                  path_weights[0] = -;
+                  if (p0L <= 45) {
+                     path_weights[0] = 0.1;
+                     ph0 = ph0 - 25;
+                  } else if (p0L > 45 && p0L <= 60) {
+                     path_weights[0] = 0.25;
+                     ph0 = ph0 - 20;
+                  } else if (p0L > 60 && p0L <= 75) {
+                     path_weights[0] = 0.45;
+                     ph0 = ph0 - 15;
+                  } else if (p0L > 75 && p0L <= 90) {
+                     path_weights[0] = 0.7
+                     ph0 = ph0 - 10;
+                  } else if (p0L > 90 && p0L <= 105) {
+                     path_weights[0] = 0.85; 
+                     ph0 = ph0 - 5;
+                  }
                }
             } 
 
