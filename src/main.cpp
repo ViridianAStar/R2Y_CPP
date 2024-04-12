@@ -49,7 +49,7 @@ movement driveControl = movement(
   gearRatio, 
   wheelDiameter, 
   // pass this your lateral PID tuning values
-  1.45, 0.0023, 0.7,  // kP, kI, kD
+  .25, 0.005, 0.2  // kP, kI, kD
 
   // pass this your rotational PID tuning values
   0.95, 0.0085, 0.64, // kP, kI, kD
@@ -288,7 +288,6 @@ void totalswingTest() {
 }
 
 void widecurveLeft(float angle, float sidelength, int iterations) {
-   driveControl.set_lateral_tuning(.25, 0.005, 0.2);
    driveControl.set_swing_tuning((3.8/2.5), 0.0055, .075);
    for (int i = 0; i < iterations; i++) {
       driveControl.move_distance(sidelength);
@@ -307,8 +306,6 @@ int where_is_error() {
       } else if (rightdistanceSensor.objectDistance(mm) < 100) {
          driveControl.triggerInterupt();
          driveControl.point_at_angle(rotationalSensor.rotation() - 5);
-      } else {
-         driveControl.move(12);
       }
 
       task::sleep(10);
