@@ -310,6 +310,7 @@ int where_is_error() {
          driveControl.triggerInterupt();
          driveControl.clearInterupt();
          driveControl.point_at_angle(rotationalSensor.rotation() + 5);
+         halted = false;
 
       } else if (rightdistanceSensor.objectDistance(mm) <= 105 ) {
 
@@ -317,6 +318,7 @@ int where_is_error() {
          driveControl.triggerInterupt();
          driveControl.clearInterupt();
          driveControl.point_at_angle(rotationalSensor.rotation() - 5);
+         halted = false;
 
       } else if (centerdistanceSensor.objectDistance(mm) <= 155) {
          halted = true;
@@ -326,12 +328,14 @@ int where_is_error() {
          driveControl.triggerInterupt();
          driveControl.clearInterupt();
          driveControl.point_at_angle(rotationalSensor.rotation() - 5);
+         halted = false;
 
          } else if (rightdistanceSensor.objectDistance(mm) > leftdistanceSensor.objectDistance(mm)){
 
          driveControl.triggerInterupt();
          driveControl.clearInterupt();
          driveControl.point_at_angle(rotationalSensor.rotation() + 5);
+         halted = false;
 
          } else if ((rightdistanceSensor.objectDistance(mm) <= leftdistanceSensor.objectDistance(mm) + 5 && rightdistanceSensor.objectDistance(mm) >= leftdistanceSensor.objectDistance(mm) - 5) && (leftdistanceSensor.objectDistance(mm) <= rightdistanceSensor.objectDistance(mm) + 5 && leftdistanceSensor.objectDistance(mm) >= rightdistanceSensor.objectDistance(mm) - 5)) {
             // why does this part feel like a nondeterministic finite automaton
