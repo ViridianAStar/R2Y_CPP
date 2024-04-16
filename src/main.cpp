@@ -296,40 +296,51 @@ void widecurveLeft(float angle, float sidelength, int iterations) {
    }
 }
 
-bool checking = false;
+bool halted = false;
+
+bool wanted = true;
 
 int where_is_error() {
 
-   while (checking == true) {
+   while (wanted == true) {
 
       if (leftdistanceSensor.objectDistance(mm) <= 105) {
 
+         halted = true;
          driveControl.triggerInterupt();
+         driveControl.clearInterupt();
          driveControl.point_at_angle(rotationalSensor.rotation() + 5);
 
       } else if (rightdistanceSensor.objectDistance(mm) <= 105 ) {
 
+         halted = true;
          driveControl.triggerInterupt();
+         driveControl.clearInterupt();
          driveControl.point_at_angle(rotationalSensor.rotation() - 5);
 
       } else if (centerdistanceSensor.objectDistance(mm) <= 155) {
+         halted = true;
 
          if (rightdistanceSensor.objectDistance(mm) < leftdistanceSensor.objectDistance(mm)) {
 
          driveControl.triggerInterupt();
+         driveControl.clearInterupt();
          driveControl.point_at_angle(rotationalSensor.rotation() - 5);
 
          } else if (rightdistanceSensor.objectDistance(mm) > leftdistanceSensor.objectDistance(mm)){
 
          driveControl.triggerInterupt();
+         driveControl.clearInterupt();
          driveControl.point_at_angle(rotationalSensor.rotation() + 5);
 
          } else if ((rightdistanceSensor.objectDistance(mm) <= leftdistanceSensor.objectDistance(mm) + 5 && rightdistanceSensor.objectDistance(mm) >= leftdistanceSensor.objectDistance(mm) - 5) && (leftdistanceSensor.objectDistance(mm) <= rightdistanceSensor.objectDistance(mm) + 5 && leftdistanceSensor.objectDistance(mm) >= rightdistanceSensor.objectDistance(mm) - 5)) {
-            
+            // why does this part feel like a nondeterministic finite automaton
             int validated_paths[2] = {0, 0};
             float path_weights[2] = {0.0, 0.0};
 
             driveControl.triggerInterupt();
+            driveControl.clearInterupt();
+            float h0 = rotationalSensor.rotation();
             driveControl.point_at_angle(rotationalSensor.rotation() + 45);
 
             float p0R = rightdistanceSensor.objectDistance(mm);
@@ -337,7 +348,7 @@ int where_is_error() {
             float p0L = leftdistanceSensor.objectDistance(mm);
             float ph0 = rotationalSensor.rotation();
 
-            driveControl.point_at_angle(rotationalSensor.rotation() + 90);
+            driveControl.point_at_angle(rotationalSensor.rotation() - 90);
 
             float p1R = rightdistanceSensor.objectDistance(mm);
             float p1C = centerdistanceSensor.objectDistance(mm);
@@ -359,7 +370,7 @@ int where_is_error() {
                      path_weights[0] = 0.45;
                      ph0 = ph0 + 15;
                   } else if (p0L > 75 && p0L <= 90) {
-                     path_weights[0] = 0.7
+                     path_weights[0] = 0.7;
                      ph0 = ph0 + 10;
                   } else if (p0L > 90 && p0L <= 105) {
                      path_weights[0] = 0.85; 
@@ -367,37 +378,117 @@ int where_is_error() {
                   }
                } else if (p0L > 105 && p0R <= 105) {
                   validated_paths[0] = 1;
-                  if (p0L <= 45) {
+                  if (p0R <= 45) {
                      path_weights[0] = 0.1;
                      ph0 = ph0 - 25;
-                  } else if (p0L > 45 && p0L <= 60) {
+                  } else if (p0R > 45 && p0R <= 60) {
                      path_weights[0] = 0.25;
                      ph0 = ph0 - 20;
-                  } else if (p0L > 60 && p0L <= 75) {
+                  } else if (p0R > 60 && p0R <= 75) {
                      path_weights[0] = 0.45;
                      ph0 = ph0 - 15;
-                  } else if (p0L > 75 && p0L <= 90) {
-                     path_weights[0] = 0.7
+                  } else if (p0R > 75 && p0R <= 90) {
+                     path_weights[0] = 0.7;
                      ph0 = ph0 - 10;
-                  } else if (p0L > 90 && p0L <= 105) {
+                  } else if (p0R > 90 && p0R <= 105) {
                      path_weights[0] = 0.85; 
                      ph0 = ph0 - 5;
                   }
+               } else if (p0L > 105 && p0R > 105) {
+                  path_weights[0] = 1;
+                  validated_paths[0] = 1;
                }
-            } 
+            } else if (p0C <= 150) {
+               path_weights[0] = 0;
+               validated_paths[0] = 0;
+            }
 
+            if (p1C > 150) {
+               if (p1L <= 105 && p1R <= 105) {
+                  validated_paths[1] = 0;
+               } else if (p1L <= 105 && p1R > 105) {
+                  validated_paths[1] = 1;
+                  if (p1L <= 45) {
+                     path_weights[1] = 0.1;
+                     ph1 = ph1 + 25;
+                  } else if (p1L > 45 && p1L <= 60) {
+                     path_weights[1] = 0.25;
+                     ph1 = ph1 + 20;
+                  } else if (p1L > 60 && p1L <= 75) {
+                     path_weights[1] = 0.45;
+                     ph1 = ph1 + 15;
+                  } else if (p1L > 75 && p1L <= 90) {
+                     path_weights[1] = 0.7;
+                     ph1 = ph1 + 10;
+                  } else if (p0L > 90 && p0L <= 105) {
+                     path_weights[1] = 0.85; 
+                     ph1 = ph1 + 5;
+                  }
+               } else if (p1L > 105 && p1R <= 105) {
+                  validated_paths[0] = 1;
+                  if (p1R <= 45) {
+                     path_weights[1] = 0.1;
+                     ph1 = ph1 - 25;
+                  } else if (p1R > 45 && p1R <= 60) {
+                     path_weights[1] = 0.25;
+                     ph1 = ph1 - 20;
+                  } else if (p1R > 60 && p1R <= 75) {
+                     path_weights[1] = 0.45;
+                     ph1 = ph1 - 15;
+                  } else if (p1R > 75 && p1R <= 90) {
+                     path_weights[1] = 0.7;
+                     ph1 = ph1 - 10;
+                  } else if (p1R > 90 && p1R <= 105) {
+                     path_weights[1] = 0.85; 
+                     ph1 = ph1 - 5;
+                  }
+               } else if (p1L > 105 && p1R > 105) {
+                  path_weights[1] = 1;
+                  validated_paths[1]  = 1;
+               }
+            } else if (p1C <= 150) {
+               path_weights[1] = 0;
+               validated_paths[1] = 0;
+            }
+
+            if (validated_paths[1] == 1 && validated_paths[0] == 0) {
+               driveControl.point_at_angle(ph1);
+               halted = false;
+            } else if (validated_paths[1] == 0 && validated_paths[0] == 1) {
+               driveControl.point_at_angle(ph0);
+               halted = false;
+            } else if (validated_paths[1] == 0 && validated_paths[0] == 0) {
+               driveControl.point_at_angle((h0 - 180));
+               halted = false;
+            } else if (validated_paths[1] == 1 && validated_paths[0] == 1) {
+               if (path_weights[0] > path_weights[1]) {
+                  driveControl.point_at_angle(ph0);
+                  halted = false;
+               } else if (path_weights[0] < path_weights[1]) {
+                  driveControl.point_at_angle(ph1);
+                  halted = false;
+               } else if (path_weights[0] == path_weights[1]) {
+                  driveControl.point_at_angle(ph1);
+                  halted = false;
+               }
+            }
          }
 
       }
-
       task::sleep(10);
    }
- 
-   return(-1);
+
+   return (1);
 }
 
 void self_guidance() {
-
+   vex::task correction( where_is_error );
+   while (1) {
+      if (halted == false) {
+         driveControl.move_distance(12);
+      }
+      
+   }
 }
 
 int main() {
@@ -411,11 +502,12 @@ int main() {
       driveControl.move_distance(50);
    }
    */
+   self_guidance();
    brakemode(brake);
-   while (1) {
+   /*while (1) {
       leftMotors.spin(forward, (driver.Axis3.value() + driver. Axis1.value())/10, volt);
       rightMotors.spin(forward, (driver.Axis3.value() - driver.Axis1.value())/10, volt);
-   }
+   }*/
    
 }
 
