@@ -459,22 +459,46 @@ int where_is_error() {
             if (validated_paths[1] == 1 && validated_paths[0] == 0) {
                driveControl.point_at_angle(ph1);
                halted = false;
+               validated_paths[0] = 0;
+               validated_paths[1] = 0;
+               path_weights[0] = 0;
+               path_weights[1] = 0;
             } else if (validated_paths[1] == 0 && validated_paths[0] == 1) {
                driveControl.point_at_angle(ph0);
                halted = false;
+               validated_paths[0] = 0;
+               validated_paths[1] = 0;
+               path_weights[0] = 0;
+               path_weights[1] = 0;
             } else if (validated_paths[1] == 0 && validated_paths[0] == 0) {
                driveControl.point_at_angle((h0 - 180));
                halted = false;
+               validated_paths[0] = 0;
+               validated_paths[1] = 0;
+               path_weights[0] = 0;
+               path_weights[1] = 0;
             } else if (validated_paths[1] == 1 && validated_paths[0] == 1) {
                if (path_weights[0] > path_weights[1]) {
                   driveControl.point_at_angle(ph0);
                   halted = false;
+                  validated_paths[0] = 0;
+                  validated_paths[1] = 0;
+                  path_weights[0] = 0;
+                  path_weights[1] = 0;
                } else if (path_weights[0] < path_weights[1]) {
                   driveControl.point_at_angle(ph1);
                   halted = false;
+                  validated_paths[0] = 0;
+                  validated_paths[1] = 0;
+                  path_weights[0] = 0;
+                  path_weights[1] = 0;
                } else if (path_weights[0] == path_weights[1]) {
                   driveControl.point_at_angle(ph1);
                   halted = false;
+                  validated_paths[0] = 0;
+                  validated_paths[1] = 0;
+                  path_weights[0] = 0;
+                  path_weights[1] = 0;
                }
             }
          }
