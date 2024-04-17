@@ -296,9 +296,10 @@ void widecurveLeft(float angle, float sidelength, int iterations) {
    }
 }
 
-bool halted = false;
 
 bool wanted = true;
+
+bool halted = false;
 
 int where_is_error() {
 
