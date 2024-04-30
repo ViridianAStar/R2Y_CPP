@@ -522,7 +522,7 @@ void self_guidance() {
 
 // likes to break 
 int main() {
-   prepSys();
+   //prepSys();
 
    
    /*driveControl.move_distance(190);
@@ -532,7 +532,7 @@ int main() {
       driveControl.move_distance(50);
    }
    */
-   self_guidance();
+   //self_guidance();
    brakemode(brake);
    /*while (1) {
       leftMotors.spin(forward, (driver.Axis3.value() + driver. Axis1.value())/10, volt);
