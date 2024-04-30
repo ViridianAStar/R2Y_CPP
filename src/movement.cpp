@@ -29,7 +29,7 @@ using namespace vex;
   }
   // Functions borrowed from JAR-Template End
   
-    movement::movement(motor_group left, motor_group right, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, float mskp, float mski, float mskd, int timeout, int settletime, float TMV, float SMV, float MSMV, float LMV, float LaiwValue, float RaiwValue, float SaiwValue, float MSaiwValue, float LsettleBounds, float RsettleBounds, float SsettleBounds, float MSsettleBounds, float wheelBase) :
+    movement::movement(motor_group left, motor_group right, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, int timeout, int settletime, float TMV, float SMV, float LMV, float LaiwValue, float RaiwValue, float SaiwValue, float LsettleBounds, float RsettleBounds, float SsettleBounds, float wheelBase) :
         leftside(left),
         rightside(right),
 
@@ -45,17 +45,12 @@ using namespace vex;
         skI(ski),
         skD(skd),
 
-        mskP(mskp),
-        mskI(mski),
-        mskD(mskd),
-
         settleTime(settletime),
         Timeout(timeout),
 
         tmv(TMV),
         lmv(LMV),
         smv(SMV),
-        msmv(MSMV),
 
         gearRatio(gearratio),
         circumference(M_PI * wheeldiameter),
@@ -63,12 +58,10 @@ using namespace vex;
         laiwValue(LaiwValue),
         raiwValue(RaiwValue),
         saiwValue(SaiwValue),
-        msaiwValue(MSaiwValue),
 
         lsettleBounds(LsettleBounds),
         rsettleBounds(RsettleBounds),
         ssettleBounds(SsettleBounds),
-        mssettleBounds(MSsettleBounds),
 
         WheelBase(wheelBase)
       {};
@@ -115,53 +108,6 @@ using namespace vex;
         // when its not active, stop.
         leftside.stop(hold);
         rightside.stop(hold);
-      }
-
-
-      void movement::movingSwingleft(float precision, float radius, float angle) {
-
-        // initialize PID
-        pid rotation = pid(rkP, rkI, rkD, raiwValue, Timeout, settleTime, rsettleBounds, tmv);
-
-        while (rotation.active() == true && interupt == false) {
-
-
-          task::sleep(10);
-        }
-
-        
-
-        // when its not active, stop.
-        rightside.stop(hold);
-        leftside.stop(hold);
-      }
-
-      void movement::movingSwingright(float differentialPerc, float radius, float angle) {
-
-        // initialize PID
-        pid motion = pid(mskP, mskI, mskD, msaiwValue, Timeout, settleTime, mssettleBounds, msmv);
-
-        while (motion.active() == true && interupt == false) {
-          
-
-
-
-
-          //leftside.spin(forward, motion.calcPID()*differentialPerc, volt);
-          //rightside.spin(forward, motion.calcPID(), volt);
-
-
-          task::sleep(10);
-        }
-
-        //point_at_angle(-angle);
-
-        // when its not active, stop.
-        rightside.stop(hold);
-        leftside.stop(hold);
-        //leftside.setPosition(initialpositionLeft, deg);
-        //rightside.setPosition(initialpositionRight, deg);
-
       }
 
       // point front towards a given angle.

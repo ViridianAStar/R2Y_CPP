@@ -58,20 +58,17 @@ movement driveControl = movement(
   // pass this your swing PID tuning values
   3.8, 0.0055, .075, // kP, kI, kD
 
-  // pass this your moving swing PID tuning values
-  1.5, 0.3, 0.7, // kP, kI, kD
-
   // pass this your timeout values (timeout, settle time)
-  10000, 150, 
+  1000, 150, 
 
-  // pass this your voltage max/min values (rotational, swing, moving swing, lateral)
-  8, 9, 11, 11,
+  // pass this your voltage max/min values (rotational, swing, lateral)
+  8, 9, 11,
 
-  // pass this your settle bounds (lateral, rotational, swing, moving swing)
-  5, 1, 1, 1,
+  // pass this your settle bounds (lateral, rotational, swing)
+  5, 1, 1,
 
-  // pass this your anti integral windup bounds (lateral, rotational, swing, moving swing)
-  41, 10, 10, 35,
+  // pass this your anti integral windup bounds (lateral, rotational, swing)
+  41, 10, 10,
 
   // Distance between wheel sides
   wheelbase

@@ -15,27 +15,20 @@ class movement {
         float skI;
         float skD;  
 
-        float mskP;
-        float mskI;
-        float mskD;
-
         float lsettleBounds = 5;
         float rsettleBounds = 5;
         float ssettleBounds = 5;
-        float mssettleBounds = 5;
 
         int settleTime;
         int Timeout;    
 
         float laiwValue = 20;
         float raiwValue = 15;
-        float saiwValue = 15;
-        float msaiwValue = 15;   
+        float saiwValue = 15; 
 
         float lmv; 
         float tmv;
-        float smv; 
-        float msmv;
+        float smv;
 
         float gearRatio;
         float circumference;
@@ -45,11 +38,9 @@ class movement {
 
         bool interupt = false;
 
-        movement(motor_group left, motor_group right, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, float mskp, float mski, float mskd, int timeout, int settletime, float TMV, float SMV, float MSMV, float LMV, float LaiwValue, float RaiwValue, float SaiwValue, float MSaiwValue, float LsettleBounds, float RsettleBounds, float SsettleBounds, float MSsettleBounds, float wheelBase);
+        movement(motor_group left, motor_group right, float gearratio, float wheeldiameter, float lkp, float lki, float lkd, float rkp, float rki, float rkd, float skp, float ski, float skd, int timeout, int settletime, float TMV, float SMV, float LMV, float LaiwValue, float RaiwValue, float SaiwValue, float LsettleBounds, float RsettleBounds, float SsettleBounds, float wheelBase);
         
         void move_distance(float distance);
-        void movingSwingleft(float  precision, float radius, float angle);
-        void movingSwingright(float precision, float radius, float angle);
         void point_at_angle(float angle);
         void swing_towards_angle_left(float angle);
         void swing_towards_angle_right(float angle);
